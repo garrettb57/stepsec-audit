@@ -1,5 +1,7 @@
 name: crawl
 
+# Manual runs only. Each run stops at time_budget_min, commits data/ and state/,
+# and can be re-run to resume. See README.md.
 on:
   workflow_dispatch:
     inputs:
