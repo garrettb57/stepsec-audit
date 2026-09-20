@@ -1,0 +1,72 @@
+repo,path,action,ref,pinned_sha,version,egress_policy,allowed_endpoints_count,disable_sudo,disable_telemetry,policy_store,self_hosted,runs_on,secure_repo_marker
+1Password/sys-locale,.github/workflows/ci.yml,harden-runner,b09bb98e06d4d774595224525879c09bc6e98c40,true,v2.20.1,audit,0,false,false,false,false,${{ matrix.triple.os }},false
+1Password/sys-locale,.github/workflows/ci.yml,actions-rs-toolchain,40a2f87e50bed6faa2d050e99810b226b75d8c8a,true,v1.0.7,,,,,,false,${{ matrix.triple.os }},false
+1Password/sys-locale,.github/workflows/ci.yml,actions-rs-cargo,34f23e8d4bb3618bc5485c3341f2bf88024fc4dc,true,v1.0.1,,,,,,false,${{ matrix.triple.os }},false
+1Password/sys-locale,.github/workflows/ci.yml,harden-runner,b09bb98e06d4d774595224525879c09bc6e98c40,true,v2.20.1,audit,0,false,false,false,false,${{ matrix.os }},false
+1Password/sys-locale,.github/workflows/ci.yml,actions-rs-toolchain,40a2f87e50bed6faa2d050e99810b226b75d8c8a,true,v1.0.7,,,,,,false,${{ matrix.os }},false
+1Password/sys-locale,.github/workflows/ci.yml,actions-rs-cargo,34f23e8d4bb3618bc5485c3341f2bf88024fc4dc,true,v1.0.1,,,,,,false,${{ matrix.os }},false
+1Password/sys-locale,.github/workflows/ci.yml,harden-runner,b09bb98e06d4d774595224525879c09bc6e98c40,true,v2.20.1,audit,0,false,false,false,false,macos-latest,false
+1Password/sys-locale,.github/workflows/ci.yml,harden-runner,b09bb98e06d4d774595224525879c09bc6e98c40,true,v2.20.1,audit,0,false,false,false,false,ubuntu-latest,false
+1Password/sys-locale,.github/workflows/ci.yml,actions-rs-toolchain,40a2f87e50bed6faa2d050e99810b226b75d8c8a,true,v1.0.7,,,,,,false,ubuntu-latest,false
+1Password/sys-locale,.github/workflows/ci.yml,harden-runner,b09bb98e06d4d774595224525879c09bc6e98c40,true,v2.20.1,audit,0,false,false,false,false,ubuntu-latest,false
+1Password/sys-locale,.github/workflows/ci.yml,actions-rs-toolchain,40a2f87e50bed6faa2d050e99810b226b75d8c8a,true,v1.0.7,,,,,,false,ubuntu-latest,false
+1Password/sys-locale,.github/workflows/ci.yml,harden-runner,b09bb98e06d4d774595224525879c09bc6e98c40,true,v2.20.1,audit,0,false,false,false,false,ubuntu-latest,false
+1Password/sys-locale,.github/workflows/ci.yml,actions-rs-toolchain,40a2f87e50bed6faa2d050e99810b226b75d8c8a,true,v1.0.7,,,,,,false,ubuntu-latest,false
+1Password/sys-locale,.github/workflows/ci.yml,actions-rs-cargo,34f23e8d4bb3618bc5485c3341f2bf88024fc4dc,true,v1.0.1,,,,,,false,ubuntu-latest,false
+1Password/sys-locale,.github/workflows/ci.yml,harden-runner,b09bb98e06d4d774595224525879c09bc6e98c40,true,v2.20.1,audit,0,false,false,false,false,ubuntu-latest,false
+Addepar/ember-classy-page-object,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,audit,0,false,false,false,false,ubuntu-latest,false
+Addepar/ember-classy-page-object,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,audit,0,false,false,false,false,ubuntu-latest,false
+Azure/Azure-Proactive-Resiliency-Library-v2,.github/workflows/validate-queries.old,harden-runner,6c439dc8bdf85cadbbce9ed30d1c7b959517bc49,true,v2.12.2,audit,0,false,false,false,false,ubuntu-latest,false
+Azure/azure-sdk-for-go-extensions,.github/workflows/go.yml,harden-runner,e3f713f2d8f53843e71c69a996d56f51aa9adfb9,true,v2.14.1,audit,0,false,false,false,false,ubuntu-latest,false
+Azure/go-asyncjob,.github/workflows/go.yml,harden-runner,91182cccc01eb5e619899d80e4e971d6181294a7,true,v2.10.1,audit,0,false,false,false,false,ubuntu-latest,false
+Azure/go-asynctask,.github/workflows/go.yml,harden-runner,91182cccc01eb5e619899d80e4e971d6181294a7,true,v2.10.1,audit,0,false,false,false,false,ubuntu-latest,false
+LDAPAccountManager/lam,.github/workflows/php.yml,harden-runner,e14015d583714f6e62063499dc959a02595150a1,true,v2.21.1,audit,0,false,false,false,true,self-hosted,false
+NodeSecure/cli,.github/workflows/cli.yml,harden-runner,bf7454d06d71f1098171f2acdf0cd4708d7b5920,true,v2.20.0,audit,0,false,false,false,false,${{matrix.os}},false
+OpenZeppelin/ethernaut,.github/workflows/cla.yml,harden-runner,4d991eb9b905ef189e4c376166672c3f2f230481,true,v2.11.0,audit,0,false,false,false,false,ubuntu-latest,false
+OpenZeppelin/openzeppelin-monitor,.github/workflows/cla.yml,harden-runner,fe104658747b27e96e4f7e80cd0a94068e53901d,true,v2.16.1,audit,0,false,false,false,false,ubuntu-latest,false
+OpenZeppelin/openzeppelin-monitor,.github/workflows/rc.yml,harden-runner,fe104658747b27e96e4f7e80cd0a94068e53901d,true,v2.16.1,audit,0,false,false,false,false,ubuntu-latest,false
+OpenZeppelin/openzeppelin-relayer,.github/workflows/cla.yml,harden-runner,bf7454d06d71f1098171f2acdf0cd4708d7b5920,true,v2.20.0,audit,0,false,false,false,false,ubuntu-latest,false
+OpenZeppelin/openzeppelin-relayer,.github/workflows/rc.yml,harden-runner,bf7454d06d71f1098171f2acdf0cd4708d7b5920,true,v2.20.0,audit,0,false,false,false,false,ubuntu-latest,false
+PaddleHQ/paddle-go-sdk,.github/workflows/go.yml,harden-runner,fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594,true,v2.16.0,audit,0,false,false,false,false,ubuntu-latest,false
+PaddleHQ/paddle-go-sdk,.github/workflows/go.yml,split-strings,d2212424ae73f4709b3a56faaf96ea42d189102f,true,v1.0.1,,,,,,false,ubuntu-latest,false
+ParetoSecurity/agent,.github/workflows/dependency-review.yml ,harden-runner,0080882f6c36860b6ba35c610c98ce87d4e2f26f,true,v2.10.2,audit,0,false,false,false,false,ubuntu-latest,false
+Recidiviz/pulse-data,.github/workflows/ci.yml,harden-runner,ec9f2d5744a09debf3a187a3f4f675c53b671911,true,v2.13.0,audit,0,false,false,false,false,runs-on=${{github.run_id}}/runner=arm64/cpu=4,false
+Recidiviz/pulse-data,.github/workflows/ci.yml,harden-runner,ec9f2d5744a09debf3a187a3f4f675c53b671911,true,v2.13.0,audit,0,false,false,false,false,runs-on=${{github.run_id}}/runner=arm64/cpu=4,false
+Recidiviz/pulse-data,.github/workflows/ci.yml,harden-runner,ec9f2d5744a09debf3a187a3f4f675c53b671911,true,v2.13.0,audit,0,false,false,false,false,runs-on=${{github.run_id}}/runner=arm64/cpu=16,false
+Recidiviz/pulse-data,.github/workflows/ci.yml,harden-runner,ec9f2d5744a09debf3a187a3f4f675c53b671911,true,v2.13.0,audit,0,false,false,false,false,runs-on=${{github.run_id}}/runner=x64/cpu=16/extras=s3-cache,false
+Recidiviz/pulse-data,.github/workflows/ci.yml,harden-runner,ec9f2d5744a09debf3a187a3f4f675c53b671911,true,v2.13.0,audit,0,false,false,false,false,runs-on=${{github.run_id}}/runner=x64/cpu=16/extras=s3-cache,false
+Recidiviz/pulse-data,.github/workflows/ci.yml,harden-runner,ec9f2d5744a09debf3a187a3f4f675c53b671911,true,v2.13.0,audit,0,false,false,false,false,runs-on=${{github.run_id}}/runner=arm64/cpu=8,false
+Recidiviz/pulse-data,.github/workflows/ci.yml,harden-runner,ec9f2d5744a09debf3a187a3f4f675c53b671911,true,v2.13.0,audit,0,false,false,false,false,runs-on=${{github.run_id}}/runner=arm64/cpu=4,false
+Recidiviz/pulse-data,.github/workflows/ci.yml,harden-runner,ec9f2d5744a09debf3a187a3f4f675c53b671911,true,v2.13.0,audit,0,false,false,false,false,runs-on=${{github.run_id}}/runner=arm64/cpu=4,false
+Recidiviz/pulse-data,.github/workflows/ci.yml,harden-runner,ec9f2d5744a09debf3a187a3f4f675c53b671911,true,v2.13.0,audit,0,false,false,false,false,runs-on=${{github.run_id}}/runner=arm64/cpu=2,false
+Recidiviz/pulse-data,.github/workflows/ci.yml,harden-runner,ec9f2d5744a09debf3a187a3f4f675c53b671911,true,v2.13.0,audit,0,false,false,false,false,runs-on=${{github.run_id}}/runner=arm64/cpu=4,false
+Recidiviz/pulse-data,.github/workflows/ci.yml,harden-runner,ec9f2d5744a09debf3a187a3f4f675c53b671911,true,v2.13.0,audit,0,false,false,false,false,runs-on=${{github.run_id}}/runner=arm64/cpu=1,false
+Recidiviz/pulse-data,.github/workflows/ci.yml,harden-runner,ec9f2d5744a09debf3a187a3f4f675c53b671911,true,v2.13.0,audit,0,false,false,false,false,runs-on=${{github.run_id}}/runner=arm64/cpu=1,false
+Samsung/CredSweeper,.github/workflows/pypi.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,audit,0,false,false,false,false,ubuntu-latest,false
+aws/secrets-store-csi-driver-provider-aws,.github/workflows/go.yml,harden-runner,v2.19.4,false,v2.19.4,audit,0,false,false,false,false,ubuntu-latest,false
+base/triedb,.github/workflows/pr.yml,harden-runner,6c439dc8bdf85cadbbce9ed30d1c7b959517bc49,true,v2.12.2,audit,0,false,false,false,false,${{ matrix.os }},false
+base/triedb,.github/workflows/pr.yml,harden-runner,6c439dc8bdf85cadbbce9ed30d1c7b959517bc49,true,v2.12.2,audit,0,false,false,false,false,ubuntu-latest,false
+base/triedb,.github/workflows/pr.yml,harden-runner,6c439dc8bdf85cadbbce9ed30d1c7b959517bc49,true,v2.12.2,audit,0,false,false,false,false,ubuntu-latest,false
+base/triedb,.github/workflows/pr.yml,harden-runner,6c439dc8bdf85cadbbce9ed30d1c7b959517bc49,true,v2.12.2,audit,0,false,false,false,false,${{ matrix.os }},false
+base/triedb,.github/workflows/pr.yml,harden-runner,6c439dc8bdf85cadbbce9ed30d1c7b959517bc49,true,v2.12.2,audit,0,false,false,false,false,${{ matrix.os }},false
+base/triedb,.github/workflows/pr.yml,harden-runner,6c439dc8bdf85cadbbce9ed30d1c7b959517bc49,true,v2.12.2,audit,0,false,false,false,false,ubuntu-latest,false
+block/elasticgraph,.github/workflows/ci.yaml,harden-runner,05e31511f85b41b11d1cf0ef85d0992719546e2c,true,v2.21.0,audit,0,false,false,false,false,ubuntu-latest,false
+block/elasticgraph,.github/workflows/ci.yaml,harden-runner,05e31511f85b41b11d1cf0ef85d0992719546e2c,true,v2.21.0,audit,0,false,false,false,false,ubuntu-latest,false
+block/elasticgraph,.github/workflows/ci.yaml,harden-runner,05e31511f85b41b11d1cf0ef85d0992719546e2c,true,v2.21.0,audit,0,false,false,false,false,ubuntu-latest,false
+block/elasticgraph,.github/workflows/ci.yaml,harden-runner,05e31511f85b41b11d1cf0ef85d0992719546e2c,true,v2.21.0,audit,0,false,false,false,false,ubuntu-latest,false
+bolshakov/fear,.github/workflows/ci.yml,harden-runner,f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a,true,v2.13.1,audit,0,false,false,false,false,ubuntu-latest,true
+bolshakov/fear,.github/workflows/ci.yml,harden-runner,f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a,true,v2.13.1,audit,0,false,false,false,false,ubuntu-latest,true
+bolshakov/fear,.github/workflows/ci.yml,harden-runner,f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a,true,v2.13.1,audit,0,false,false,false,false,ubuntu-latest,true
+bolshakov/fear,.github/workflows/ci.yml,harden-runner,f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a,true,v2.13.1,audit,0,false,false,false,false,ubuntu-latest,true
+burningmantech/ranger-clubhouse-web,.github/workflows/cicd.yml,harden-runner,v2.20.0,false,v2.20.0,block,4,true,false,false,false,ubuntu-latest,false
+burningmantech/ranger-clubhouse-web,.github/workflows/cicd.yml,harden-runner,v2.20.0,false,v2.20.0,block,4,true,false,false,false,ubuntu-latest,false
+burningmantech/ranger-clubhouse-web,.github/workflows/cicd.yml,harden-runner,v2.20.0,false,v2.20.0,block,10,true,false,false,false,ubuntu-latest,false
+burningmantech/ranger-clubhouse-web,.github/workflows/cicd.yml,harden-runner,v2.20.0,false,v2.20.0,block,2,true,false,false,false,ubuntu-latest,false
+burningmantech/ranger-clubhouse-web,.github/workflows/cicd.yml,harden-runner,v2.20.0,false,v2.20.0,audit,0,false,false,false,false,ubuntu-latest,false
+caddyserver/transform-encoder,.github/workflows/ci.yml,harden-runner,f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a,true,v2.13.1,audit,0,false,false,false,false,${{ matrix.os }},false
+chainguard-dev/osquery-defense-kit,.github/workflows/ci.yml,harden-runner,8d3c67de8e2fe68ef647c8db1e6a09f647780f40,true,v2.19.0,audit,0,false,false,false,false,ubuntu-latest,false
+chainguard-sandbox/osqtool,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,audit,0,false,false,false,false,ubuntu-latest,false
+circlefin/contract-cli,.github/workflows/ci.yml,harden-runner,95d9a5deda9de15063e7595e9719c11c38c90ae2,true,v2.13.2,block,0,false,false,true,false,ubuntu-latest,false
+coveo/platform-client,.github/workflows/cd.yml,harden-runner,f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a,true,v2.13.1,audit,0,false,false,false,false,ubuntu-latest,false
+coveo/platform-client,.github/workflows/ci.yml,harden-runner,f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a,true,v2.13.1,audit,0,false,false,false,false,ubuntu-latest,false
+coveo/search-ui,.github/workflows/ci.yml,harden-runner,f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a,true,v2.13.1,audit,0,false,false,false,false,ubuntu-latest,false
