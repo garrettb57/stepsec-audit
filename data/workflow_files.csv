@@ -70,3 +70,60 @@ circlefin/contract-cli,.github/workflows/ci.yml,harden-runner,95d9a5deda9de15063
 coveo/platform-client,.github/workflows/cd.yml,harden-runner,f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a,true,v2.13.1,audit,0,false,false,false,false,ubuntu-latest,false
 coveo/platform-client,.github/workflows/ci.yml,harden-runner,f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a,true,v2.13.1,audit,0,false,false,false,false,ubuntu-latest,false
 coveo/search-ui,.github/workflows/ci.yml,harden-runner,f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a,true,v2.13.1,audit,0,false,false,false,false,ubuntu-latest,false
+coveo/ui-kit,.github/workflows/cd.yml,harden-runner,05e31511f85b41b11d1cf0ef85d0992719546e2c,true,v2.21.0,audit,0,false,false,false,false,ubuntu-latest,false
+coveo/ui-kit,.github/workflows/cd.yml,changeset-action,6ddf46283ed49170eb6ca2179818f7d2a0ae687c,true,v1.9.0,,,,,,false,ubuntu-latest,false
+coveo/ui-kit,.github/workflows/cd.yml,harden-runner,05e31511f85b41b11d1cf0ef85d0992719546e2c,true,v2.21.0,audit,0,false,false,false,false,ubuntu-latest,false
+coveo/ui-kit,.github/workflows/cd.yml,getsentry-action-release,4530160f6bc962e1dd67e2703064a7a5cfd401fb,true,v3.7.0,,,,,,false,ubuntu-latest,false
+coveo/ui-kit,.github/workflows/cd.yml,harden-runner,05e31511f85b41b11d1cf0ef85d0992719546e2c,true,v2.21.0,audit,0,false,false,false,false,ubuntu-latest,false
+coveo/ui-kit,.github/workflows/cd.yml,harden-runner,05e31511f85b41b11d1cf0ef85d0992719546e2c,true,v2.21.0,audit,0,false,false,false,false,ubuntu-latest,false
+coveo/ui-kit,.github/workflows/cd.yml,harden-runner,05e31511f85b41b11d1cf0ef85d0992719546e2c,true,v2.21.0,audit,0,false,false,false,false,ubuntu-latest,false
+coveo/ui-kit,.github/workflows/cd.yml,harden-runner,05e31511f85b41b11d1cf0ef85d0992719546e2c,true,v2.21.0,audit,0,false,false,false,false,ubuntu-latest,false
+coveo/ui-kit,.github/workflows/cd.yml,harden-runner,05e31511f85b41b11d1cf0ef85d0992719546e2c,true,v2.21.0,audit,0,false,false,false,false,ubuntu-latest,false
+coveo/ui-kit,.github/workflows/cd.yml,harden-runner,05e31511f85b41b11d1cf0ef85d0992719546e2c,true,v2.21.0,audit,0,false,false,false,false,ubuntu-latest,false
+coveo/ui-kit,.github/workflows/cd.yml,harden-runner,05e31511f85b41b11d1cf0ef85d0992719546e2c,true,v2.21.0,audit,0,false,false,false,false,ubuntu-latest,false
+coveooss/exponential-backoff,.github/workflows/cd.yml,harden-runner,c6295a65d1254861815972266d5933fd6e532bdf,true,v2.11.1,audit,0,false,false,false,false,ubuntu-latest,false
+coveooss/exponential-backoff,.github/workflows/ci.yml,harden-runner,c6295a65d1254861815972266d5933fd6e532bdf,true,v2.11.1,audit,0,false,false,false,false,ubuntu-latest,false
+coveooss/gotemplate,.github/workflows/pr.yml,harden-runner,8d3c67de8e2fe68ef647c8db1e6a09f647780f40,true,v2.19.0,audit,0,false,false,false,false,ubuntu-latest,false
+decionis/agent-safe-pipeline,.github/workflows/dco.yml,harden-runner,05e31511f85b41b11d1cf0ef85d0992719546e2c,true,v2.21.0,audit,0,false,false,false,false,ubuntu-latest,false
+ducktors/fastify-socket.io,.github/workflows/ci.yml,harden-runner,8d3c67de8e2fe68ef647c8db1e6a09f647780f40,true,v2.19.0,audit,0,false,false,false,false,${{ matrix.os }},false
+ducktors/fastify-socket.io,.github/workflows/ci.yml,harden-runner,8d3c67de8e2fe68ef647c8db1e6a09f647780f40,true,v2.19.0,audit,0,false,false,false,false,macos-latest,false
+erlef/mix-dependency-submission,.github/workflows/pr.yml,harden-runner,05e31511f85b41b11d1cf0ef85d0992719546e2c,true,v2.21.0,audit,0,false,false,false,false,ubuntu-latest,false
+external-secrets/reloader,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,audit,0,false,false,false,false,ubuntu-latest,false
+external-secrets/reloader,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,audit,0,false,false,false,false,ubuntu-latest,false
+github/github-ospo,.github/workflows/ci.yml,harden-runner,bf7454d06d71f1098171f2acdf0cd4708d7b5920,true,v2.20.0,audit,0,false,false,false,false,ubuntu-latest,false
+grafana/crossplane-provider-grafana,.github/workflows/ci.yaml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,audit,0,false,false,false,false,ubuntu-24.04,false
+grafana/crossplane-provider-grafana,.github/workflows/ci.yaml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,audit,0,false,false,false,false,ubuntu-24.04,false
+grafana/crossplane-provider-grafana,.github/workflows/ci.yaml,changed-files,2e07db73e5ccdb319b9a6c7766bd46d39d304bad,true,v47.0.5,,,,,,false,ubuntu-24.04,false
+grafana/crossplane-provider-grafana,.github/workflows/ci.yaml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,audit,0,false,false,false,false,ubuntu-24.04,false
+grafana/crossplane-provider-grafana,.github/workflows/ci.yaml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,audit,0,false,false,false,false,ubuntu-24.04,false
+grafana/crossplane-provider-grafana,.github/workflows/ci.yaml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,audit,0,false,false,false,false,ubuntu-24.04,false
+grafana/crossplane-provider-grafana,.github/workflows/ci.yaml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,audit,0,false,false,false,false,ubuntu-24.04,false
+grafana/crossplane-provider-grafana,.github/workflows/ci.yaml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,audit,0,false,false,false,false,${{ matrix.runner }},false
+grafana/crossplane-provider-grafana,.github/workflows/ci.yaml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,audit,0,false,false,false,false,ubuntu-24.04,false
+grafana/detect-angular-dashboards,.github/workflows/release-please.yml.disabled,harden-runner,20cf305ff2072d973412fa9b1e3a4f227bda3c76,true,v2.14.0,audit,0,false,false,false,false,ubuntu-arm64-small,false
+halostatue/color,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,block,5,true,false,false,false,ubuntu-latest,false
+halostatue/color,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,block,6,true,false,false,false,ubuntu-latest,false
+halostatue/color,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,block,5,true,false,false,false,${{ matrix.os }},false
+halostatue/color,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,block,5,true,false,false,false,${{ matrix.os }},false
+halostatue/color,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,block,5,true,false,false,false,${{ matrix.os }},false
+halostatue/color,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,block,6,true,false,false,false,${{ matrix.os }},false
+halostatue/color,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,block,5,true,false,false,false,${{ matrix.os }},false
+halostatue/diff-lcs,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,block,5,true,false,false,false,ubuntu-latest,false
+halostatue/diff-lcs,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,block,6,true,false,false,false,ubuntu-latest,false
+halostatue/diff-lcs,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,block,5,true,false,false,false,${{ matrix.os }},false
+halostatue/diff-lcs,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,block,5,true,false,false,false,${{ matrix.os }},false
+halostatue/diff-lcs,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,block,5,true,false,false,false,${{ matrix.os }},false
+halostatue/diff-lcs,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,block,6,true,false,false,false,${{ matrix.os }},false
+halostatue/diff-lcs,.github/workflows/ci.yml,harden-runner,9af89fc71515a100421586dfdb3dc9c984fbf411,true,v2.19.4,block,5,true,false,false,false,${{ matrix.os }},false
+halostatue/minitar,.github/workflows/ci.yml,harden-runner,8d3c67de8e2fe68ef647c8db1e6a09f647780f40,true,v2.19.0,block,5,true,false,false,false,ubuntu-latest,false
+halostatue/minitar,.github/workflows/ci.yml,harden-runner,8d3c67de8e2fe68ef647c8db1e6a09f647780f40,true,v2.19.0,block,6,true,false,false,false,ubuntu-latest,false
+halostatue/minitar,.github/workflows/ci.yml,harden-runner,8d3c67de8e2fe68ef647c8db1e6a09f647780f40,true,v2.19.0,block,5,true,false,false,false,${{ matrix.os }},false
+halostatue/minitar,.github/workflows/ci.yml,harden-runner,8d3c67de8e2fe68ef647c8db1e6a09f647780f40,true,v2.19.0,block,5,true,false,false,false,${{ matrix.os }},false
+halostatue/minitar,.github/workflows/ci.yml,harden-runner,8d3c67de8e2fe68ef647c8db1e6a09f647780f40,true,v2.19.0,block,5,true,false,false,false,${{ matrix.os }},false
+halostatue/minitar,.github/workflows/ci.yml,harden-runner,8d3c67de8e2fe68ef647c8db1e6a09f647780f40,true,v2.19.0,block,6,true,false,false,false,${{ matrix.os }},false
+halostatue/minitar,.github/workflows/ci.yml,harden-runner,8d3c67de8e2fe68ef647c8db1e6a09f647780f40,true,v2.19.0,block,5,true,false,false,false,${{ matrix.os }},false
+hashgraph/ledger-app-hedera,.github/workflows/ci.yml,harden-runner,63c24ba6bd7ba022e95695ff85de572c04a18142,true,v2.7.0,audit,0,false,false,false,false,wallet-tools-linux-medium,false
+hashgraph/ledger-app-hedera,.github/workflows/ci.yml,harden-runner,63c24ba6bd7ba022e95695ff85de572c04a18142,true,v2.7.0,audit,0,false,false,false,false,wallet-tools-linux-medium,false
+ilai-deutel/kibi,.github/workflows/ci.yml,harden-runner,bf7454d06d71f1098171f2acdf0cd4708d7b5920,true,v2.20.0,audit,0,false,false,false,false,${{ matrix.os }},false
+ilai-deutel/kibi,.github/workflows/ci.yml,harden-runner,bf7454d06d71f1098171f2acdf0cd4708d7b5920,true,v2.20.0,audit,0,false,false,false,false,${{ matrix.os }},false
+ilai-deutel/kibi,.github/workflows/loc.yml,harden-runner,bf7454d06d71f1098171f2acdf0cd4708d7b5920,true,v2.20.0,audit,0,false,false,false,false,ubuntu-latest,false

@@ -1,36 +1,50 @@
 login,name,emails,corporate_emails,company,website,location,twitter,roles,accounts,repos,commits,last_commit,first_adoption,profile_url
 PIsberg,Peter Isberg,isberg.peter@gmail.com,,Deversity AB,http://www.deversity.se,"Gothenburg, Sweden",,merged_stepsecurity_pr; repo_owner; top_committer,PIsberg,PIsberg/axiom; PIsberg/nanometer,141,2026-09-12T12:59:01Z,,https://github.com/PIsberg
+halostatue,Austin Ziegler,austin@zieglers.ca,austin@zieglers.ca,,http://www.halostatue.ca/,"Toronto, Ontario",halostatue,harden_runner_adopter; repo_owner; top_committer,halostatue,halostatue/color; halostatue/diff-lcs; halostatue/minitar,112,2026-07-05T03:00:34Z,2020-06-23T03:10:15Z,https://github.com/halostatue
 codesam88,Sam,tedsamhain@gmail.com,,,,,,merged_stepsecurity_pr; repo_owner; top_committer,codesam88,codesam88/picasu,79,2026-09-15T23:38:21Z,,https://github.com/codesam88
 678098,Evgenii Malygin,emalygin@bloomberg.net,emalygin@bloomberg.net,Bloomberg LP,,New York,,committer; merged_stepsecurity_pr; top_committer,bloomberg,bloomberg/blazingmq; bloomberg/blazingmq-sdk-java; bloomberg/blazingmq-sdk-python,71,2026-09-18T18:00:50Z,,https://github.com/678098
+daabr,Daniel Abraham,aeroquix@gmail.com,,,,"California, US",,merged_stepsecurity_pr; repo_owner; top_committer,daabr,daabr/versipellis,65,2026-09-16T03:10:16Z,,https://github.com/daabr
 bolshakov,Tëma Bolshakov,either.free@gmail.com,,,,Spain,,harden_runner_adopter; repo_owner; top_committer,bolshakov,bolshakov/fear,46,2025-09-01T18:29:14Z,2025-08-03T15:30:44Z,https://github.com/bolshakov
+ilai-deutel,Ilaï Deutel,root@ilai.dev,root@ilai.dev,@google,,,,harden_runner_adopter; repo_owner; top_committer,ilai-deutel,ilai-deutel/kibi,34,2026-09-01T12:48:11Z,2021-10-03T04:16:17Z,https://github.com/ilai-deutel
 Nick2bad4u,Typpi,,,,https://nick2bad4u.github.io/Nick2bad4u/,"Michigan, USA",,repo_owner; top_committer,Nick2bad4u,Nick2bad4u/Uptime-Watcher; Nick2bad4u/UserStyles,175,2026-09-20T16:27:24Z,,https://github.com/Nick2bad4u
 tstromberg,Thomas Strömberg,t+github@chainguard.dev; t+github@stromberg.org; t@chainguard.dev,t+github@chainguard.dev; t+github@stromberg.org; t@chainguard.dev,@isotope13-dev,http://atomdrift.org/,"Carrboro, NC",,harden_runner_adopter; top_committer,chainguard-dev; chainguard-sandbox,chainguard-dev/osquery-defense-kit; chainguard-sandbox/osqtool,150,2025-06-26T14:28:35Z,2023-02-23T11:35:49Z,https://github.com/tstromberg
 pniedzielski,Patrick M. Niedzielski,patrick@pniedzielski.net; pniedzielski@bloomberg.net,patrick@pniedzielski.net; pniedzielski@bloomberg.net,"Bloomberg, L.P.",https://pniedzielski.net/,"New York, NY",,committer; top_committer,bloomberg,bloomberg/blazingmq; bloomberg/blazingmq-sdk-java; bloomberg/blazingmq-sdk-python,109,2026-09-18T20:00:20Z,,https://github.com/pniedzielski
 gruberroland,Roland Gruber,post@rolandgruber.de,post@rolandgruber.de,,,,,harden_runner_adopter; top_committer,LDAPAccountManager,LDAPAccountManager/lam,85,2026-09-18T05:55:27Z,2022-03-04T19:28:01Z,https://github.com/gruberroland
 kkazmierczyk,Krzysztof Kazmierczyk,kazm@ibm.com,kazm@ibm.com,IBM,,,,merged_stepsecurity_pr; top_committer,IBM,IBM/javacore-analyser,73,2026-09-18T07:08:10Z,,https://github.com/kkazmierczyk
+samisayegh,Sami Sayegh,samisayegh1@gmail.com; ssayegh@coveo.com,ssayegh@coveo.com,,,Montreal,,harden_runner_adopter; top_committer,coveooss,coveooss/exponential-backoff,65,2023-02-20T19:22:17Z,2023-02-20T19:18:42Z,https://github.com/samisayegh
 haitch,Haitao Chen,haidaocht@gmail.com,,,,Seattle,,harden_runner_adopter; top_committer,Azure,Azure/go-asyncjob; Azure/go-asynctask,63,2024-10-08T19:01:50Z,2020-03-15T05:19:20Z,https://github.com/haitch
 RalphHightower,Ralph Hightower,,,@Permanent-Vacations,https://ralphhightower.github.io/,"Chapin, South Carolina, USA",,repo_owner; top_committer,RalphHightower,RalphHightower/RalphHightower,39,2026-08-30T12:03:32Z,,https://github.com/RalphHightower
 dz0ny,Janez Troha,hey@dz0ny.dev,hey@dz0ny.dev,@teamniteo,https://dz0ny.dev,Slovenia,dz0ny,harden_runner_adopter; top_committer,ParetoSecurity,ParetoSecurity/agent,36,2026-07-07T18:33:16Z,2024-12-16T09:02:36Z,https://github.com/dz0ny
 complexspaces,ComplexSpaces,code@pengin.systems; complexspacescode@gmail.com,code@pengin.systems,,,,,harden_runner_adopter; top_committer,1Password,1Password/sys-locale,33,2026-08-06T17:15:01Z,2021-05-13T16:14:57Z,https://github.com/complexspaces
+Duologic,Jeroen Op 't Eynde,jeroen@grafana.com,jeroen@grafana.com,@grafana,simplistic.be,Belgium,,harden_runner_adopter; top_committer,grafana,grafana/crossplane-provider-grafana,31,2026-09-14T18:00:56Z,2026-01-21T10:04:34Z,https://github.com/Duologic
+maennchen,Jonatan Männchen,jonatan@maennchen.ch,jonatan@maennchen.ch,Erlang Ecosystem Foundation,https://maennchen.dev,Winterthur - Switzerland,maennchen_,harden_runner_adopter; top_committer,erlef,erlef/mix-dependency-submission,31,2026-08-18T12:44:37Z,2023-03-29T22:02:58Z,https://github.com/maennchen
 simonmarty,Simon Marty,simon.marty0@gmail.com,,@aws,simonmarty.com,"Seattle, WA",,harden_runner_adopter; top_committer,aws,aws/secrets-store-csi-driver-provider-aws,29,2026-07-30T17:23:17Z,2022-05-12T17:52:30Z,https://github.com/simonmarty
 fraxken,Thomas.G,gentilhomme.thomas@gmail.com,,@OpenAlly,,Paris,fraxken,harden_runner_adopter; top_committer,NodeSecure,NodeSecure/cli,28,2026-09-04T16:15:18Z,2026-07-08T15:50:08Z,https://github.com/fraxken
+louis-bompart,Louis Bompart,lbompart@coveo.com,lbompart@coveo.com,@coveo,,"Québec City, QC, Canada",,harden_runner_adopter; top_committer,coveo; coveooss,coveo/platform-client; coveo/search-ui; coveo/ui-kit; coveooss/exponential-backoff,26,2025-10-28T16:16:17Z,2022-08-05T12:23:05Z,https://github.com/louis-bompart
+AlanGraham,Alan Graham,agraham@insights.com,agraham@insights.com,Insights,,"Dundee, Scotland",,merged_stepsecurity_pr; top_committer,foundationsedge,foundationsedge/nv-i18n,26,2026-09-18T15:23:31Z,,https://github.com/AlanGraham
 myronmarston,Myron Marston,myron.marston@gmail.com; myron.marston@toasttab.com; myron@squareup.com,myron.marston@toasttab.com; myron@squareup.com,@toasttab,myronmars.to/n,"Seattle, WA",,harden_runner_adopter; top_committer,block,block/elasticgraph,22,2026-09-20T04:57:50Z,2024-10-24T23:31:53Z,https://github.com/myronmarston
 tirumerla,Sai Tirumerla,tirumerla@gmail.com,,OpenZeppelin,,"San Francisco, CA",,committer; harden_runner_adopter,OpenZeppelin,OpenZeppelin/ethernaut; OpenZeppelin/openzeppelin-monitor; OpenZeppelin/openzeppelin-relayer,19,2026-07-29T05:42:48Z,2025-03-26T23:45:52Z,https://github.com/tirumerla
-louis-bompart,Louis Bompart,lbompart@coveo.com,lbompart@coveo.com,@coveo,,"Québec City, QC, Canada",,harden_runner_adopter; top_committer,coveo,coveo/platform-client; coveo/search-ui,17,2025-10-28T16:16:17Z,2022-08-05T12:23:05Z,https://github.com/louis-bompart
+rajbos,Rob Bos,raj.bos@gmail.com,,@Xebia,https://devopsjournal.io,"Eindhoven, NL",,merged_stepsecurity_pr; top_committer,devex-metrics,devex-metrics/github-community-analysis,19,2026-09-13T19:43:45Z,,https://github.com/rajbos
+y-lakhdar,ylakhdar,ylakhdar@coveo.com,ylakhdar@coveo.com,@coveo,,,,committer; top_committer,coveo,coveo/search-ui; coveo/ui-kit,16,2026-09-17T13:03:09Z,,https://github.com/y-lakhdar
 mohammed90,Mohammed Al Sahaf,msaa1990@gmail.com,,,https://www.caffeinatedwonders.com,,MohammedSahaf,harden_runner_adopter; top_committer,caddyserver,caddyserver/transform-encoder,14,2025-11-20T09:42:51Z,2022-12-13T12:16:21Z,https://github.com/mohammed90
 circle-smartin,circle-smartin,sarah.martin@circle.com,sarah.martin@circle.com,,,,,harden_runner_adopter; top_committer,circlefin,circlefin/contract-cli,9,2022-10-14T10:30:11Z,2022-09-22T19:41:39Z,https://github.com/circle-smartin
 jjtny1,Joby Thundil,jjtny1@gmail.com; joby.thundil@coinbase.com,joby.thundil@coinbase.com,,,,,harden_runner_adopter; top_committer,base,base/triedb,8,2025-04-14T16:48:11Z,2025-02-12T22:00:59Z,https://github.com/jjtny1
+tolzhabayev,Timur Olzhabayev,timur.olzhabayev@grafana.com; timur@timur.digital,timur.olzhabayev@grafana.com; timur@timur.digital,Grafana Labs,https://timur.digital,"Cologne, Germany",timur_digital,harden_runner_adopter; top_committer,grafana,grafana/detect-angular-dashboards,6,2026-09-07T08:52:53Z,2026-05-21T14:51:54Z,https://github.com/tolzhabayev
 arthurclares,Arthur Clares,,,@microsoft,linkedin.com/arthurclares,,,committer; harden_runner_adopter,Azure,Azure/Azure-Proactive-Resiliency-Library-v2,3,2025-11-12T16:37:29Z,2025-09-15T15:09:19Z,https://github.com/arthurclares
 mixonic,Matthew Beale,matt.beale@addepar.com; matt.beale@madhatted.com,matt.beale@addepar.com; matt.beale@madhatted.com,Addepar,https://madhatted.com,"Larchmont, NY",,harden_runner_adopter; top_committer,Addepar,Addepar/ember-classy-page-object,3,2025-01-22T14:36:41Z,2021-02-05T20:32:31Z,https://github.com/mixonic
+jlemberg,Jamie,,,M1 Finance,,"Chicago, IL",,merged_stepsecurity_pr; top_committer,fensberg,fensberg/homelab,3,2026-09-05T21:00:17Z,,https://github.com/jlemberg
+kevinveenbirkenbach,Kevin Veen-Birkenbach,kevin@veen.world,kevin@veen.world,Consulting and Coaching Services,https://www.veen.world,Berlin,,top_committer,infinito-nexus,infinito-nexus/core,92,2026-09-20T14:23:43Z,,https://github.com/kevinveenbirkenbach
 GianfrancoBazzani,Gianfran.co,bazzanigianfranco@gmail.com,,,,,0xGianfranco,top_committer,OpenZeppelin,OpenZeppelin/ethernaut,88,2025-11-19T16:57:18Z,,https://github.com/GianfrancoBazzani
 mikeburg,mikeburg,frankenstein@burningman.org,frankenstein@burningman.org,,,,,top_committer,burningmantech,burningmantech/ranger-clubhouse-web,81,2026-08-30T22:18:52Z,,https://github.com/mikeburg
 babenek,Roman Babenko,,,Samsung,,"Kyiv, Ukraine",,top_committer,Samsung,Samsung/CredSweeper,78,2026-09-20T18:32:20Z,,https://github.com/babenek
 osma,Osma Suominen,osma.suominen@helsinki.fi,osma.suominen@helsinki.fi,@NatLibFi,https://sigmoid.social/@osma,"Helsinki, Finland",,top_committer,NatLibFi,NatLibFi/BIBRA,65,2026-09-14T08:33:41Z,,https://github.com/osma
+cacampbell,Chris Campbell,chris@launchbadge.com; chriscampbell3.14@gmail.com,chris@launchbadge.com,Fitguard,,Davis,,top_committer,hashgraph,hashgraph/ledger-app-hedera,54,2021-12-06T22:58:52Z,,https://github.com/cacampbell
 mikeymike,Michael Woodward,michael.woodward@paddle.com; mikeymike.mw@gmail.com,michael.woodward@paddle.com,Day: @PaddleHQ Night: @php-school ,,,mikeymikemw,top_committer,PaddleHQ,PaddleHQ/paddle-go-sdk,53,2026-03-30T15:34:51Z,,https://github.com/mikeymike
 algomaster99,Aman Sharma,mannu.poski10@gmail.com,,KTH Royal Institute of Technology,https://algomaster99.github.io/,"Stockholm, Sweden",,top_committer,chains-project,chains-project/maven-lockfile,52,2026-09-07T17:09:28Z,,https://github.com/algomaster99
-mkistler,Mike Kistler,mkistler@sbcglobal.net,mkistler@sbcglobal.net,,,"Austin, TX",,top_committer,aep-dev,aep-dev/aep-openapi-linter,51,2026-03-05T12:41:31Z,,https://github.com/mkistler
+mkistler,Mike Kistler,mkistler@sbcglobal.net,,,,"Austin, TX",,top_committer,aep-dev,aep-dev/aep-openapi-linter,51,2026-03-05T12:41:31Z,,https://github.com/mkistler
 ,Haitao Chen,haitch@microsoft.com,haitch@microsoft.com,,,,,top_committer,Azure,Azure/go-asyncjob; Azure/go-asynctask,47,2023-11-13T22:58:26Z,,
 and-cb,and-cb,andrea.corbellini@coinbase.com,andrea.corbellini@coinbase.com,,,,,top_committer,base,base/triedb,45,2025-12-04T22:25:12Z,,https://github.com/and-cb
+xnyo,Giuseppe Guerra,giuseppe.guerra@grafana.com; giuseppe@guerra.in,giuseppe.guerra@grafana.com; giuseppe@guerra.in,@grafana,https://guerra.in,Italy,,top_committer,grafana,grafana/detect-angular-dashboards,42,2026-06-09T10:08:56Z,,https://github.com/xnyo
 chrisbeard,Chris Beard,cbeard9@bloomberg.net,cbeard9@bloomberg.net,,trombeard.com,,,top_committer,bloomberg,bloomberg/blazingmq; bloomberg/blazingmq-sdk-java,37,2026-09-18T20:03:00Z,,https://github.com/chrisbeard
 jwils,Josh Wilson,joshuaw@squareup.com; wilson.joshual@gmail.com,joshuaw@squareup.com,,,,,top_committer,block,block/elasticgraph,35,2026-09-14T22:54:13Z,,https://github.com/jwils
 ThirdEyeSqueegee,Angad,,,@aws,,"Seattle, Washington",,top_committer,aws,aws/secrets-store-csi-driver-provider-aws,34,2026-08-26T17:43:51Z,,https://github.com/ThirdEyeSqueegee
@@ -39,7 +53,13 @@ zeljkoX,Zeljko,zeljko89markovic@gmail.com,,@openzeppelin,www.linkedin.com/in/zel
 juhoinkinen,Juho Inkinen,,,@NatLibFi ,,,,top_committer,NatLibFi,NatLibFi/BIBRA,30,2026-09-18T08:48:17Z,,https://github.com/juhoinkinen
 bantic,Cory Forsyth,cory.forsyth@addepar.com; cory.forsyth@gmail.com,cory.forsyth@addepar.com,@Addepar,http://coryforsyth.com/,"Brooklyn, NY",bantic,top_committer,Addepar,Addepar/ember-classy-page-object,27,2025-01-24T14:46:19Z,,https://github.com/bantic
 PierreDemailly,PierreDemailly,,,@MyUnisoft ,,France,,top_committer,NodeSecure,NodeSecure/cli,26,2026-09-16T19:36:48Z,,https://github.com/PierreDemailly
+jocgir,Jo Giroux,jgiroux@coveo.com,jgiroux@coveo.com,@coveo,,Quebec city,,top_committer,coveooss,coveooss/gotemplate,24,2025-03-03T17:45:49Z,,https://github.com/jocgir
+Skarlso,Gergely Bräutigam,skarlso777@gmail.com,,@Kubermatic,https://gergelybrautigam.com,Ether,Skarlso,top_committer,external-secrets,external-secrets/reloader,23,2026-08-25T07:25:48Z,,https://github.com/Skarlso
 BrianBland,Brian Bland,brian.bland@coinbase.com; brian.t.bland@gmail.com,brian.bland@coinbase.com,,,"Seattle, WA",,top_committer,base,base/triedb,22,2026-01-27T18:35:17Z,,https://github.com/BrianBland
+zkoppert,Zack Koppert,zkoppert@github.com,,@github,https://www.zackkoppert.com,"Portland, OR",zacheryk89,top_committer,github,github/github-ospo,22,2026-06-03T23:32:29Z,,https://github.com/zkoppert
+alexprudhomme,Alex Prudhomme,,,@coveo,,,,top_committer,coveo,coveo/ui-kit,21,2026-09-16T12:53:54Z,,https://github.com/alexprudhomme
+alangdundee,Alan Graham,,,Extendogs,,"Dundee, Scotland",,top_committer,foundationsedge,foundationsedge/nv-i18n,19,2026-09-02T14:24:48Z,,https://github.com/alangdundee
+TamtamHero,Jean P,,,,,,,top_committer,hashgraph,hashgraph/ledger-app-hedera,15,2021-12-09T17:18:16Z,,https://github.com/TamtamHero
 michaelsc44,Michael Schroeder,michael.schroeder@chainguard.dev,michael.schroeder@chainguard.dev,,,,,top_committer,chainguard-dev,chainguard-dev/osquery-defense-kit,14,2025-08-13T13:54:25Z,,https://github.com/michaelsc44
 dylankilkenny,dylankilkenny,dylankilkenny95@gmail.com,,@openzeppelin,dyl.xyz,Ireland,,top_committer,OpenZeppelin,OpenZeppelin/openzeppelin-relayer,14,2026-08-07T08:48:07Z,,https://github.com/dylankilkenny
 NicoMolinaOZ,Nicolas Molina,nicolas.molina@openzeppelin.com,nicolas.molina@openzeppelin.com,OpenZeppelin,,"Rosario, Argentina",,committer,OpenZeppelin,OpenZeppelin/openzeppelin-monitor; OpenZeppelin/openzeppelin-relayer,14,2026-03-20T00:06:37Z,,https://github.com/NicoMolinaOZ
@@ -49,47 +69,64 @@ collins-w,Collins,delanhype@gmail.com,,,https://www.wakhungu-collins.dev,Nanyuki
 paulgerold,Paul Gerold,geroldpaul@gmail.com; pgerold@coveo.com,pgerold@coveo.com,@coveo ,,Montréal,,top_committer,coveo,coveo/platform-client,13,2026-09-11T01:18:44Z,,https://github.com/paulgerold
 tallaxes,Alex Leites,,,@microsoft,,"Seattle, WA",,top_committer,Azure,Azure/azure-sdk-for-go-extensions,13,2025-06-11T03:37:56Z,,https://github.com/tallaxes
 kaikulimu,Yuan Jing Vincent Yan,kaikulimu@yahoo.com.hk,kaikulimu@yahoo.com.hk,,,,,top_committer,bloomberg,bloomberg/blazingmq,13,2026-09-09T16:00:04Z,,https://github.com/kaikulimu
+,Jason Meridth,jmeridth@github.com,,,,,,top_committer,github,github/github-ospo,13,2025-12-09T09:02:12Z,,
+fgenois-coveo,Frank Genois,fgenois@coveo.com,fgenois@coveo.com,,,,,top_committer,coveooss,coveooss/gotemplate,13,2026-04-27T14:37:51Z,,https://github.com/fgenois-coveo
 shahnami,Nami,me@nami.sh,me@nami.sh,@OpenZeppelin,https://nami.sh,Dubai,nami_sh,top_committer,OpenZeppelin,OpenZeppelin/openzeppelin-monitor,12,2026-07-10T07:47:19Z,,https://github.com/shahnami
 antoineborg,Antoine,,,SwissBorg,swissborg.com,,antoinebllngr,top_committer,OpenZeppelin,OpenZeppelin/openzeppelin-monitor,12,2026-05-08T12:47:49Z,,https://github.com/antoineborg
+jmeridth,Jason Meridth,jmeridth@gmail.com,,@chainguard-dev,https://jmeridth.com,"San Antonio, TX",,top_committer,github,github/github-ospo,12,2026-06-03T23:25:43Z,,https://github.com/jmeridth
 wmannard,wmannard,,,,,,,top_committer,coveo,coveo/search-ui,11,2025-09-17T15:50:02Z,,https://github.com/wmannard
 ellisandrews-toast,Ellis Andrews,,,,,,,top_committer,block,block/elasticgraph,11,2026-08-17T22:40:28Z,,https://github.com/ellisandrews-toast
 bloomberg-oss,Bloomberg Open Source,opensource@bloomberg.net,opensource@bloomberg.net,@bloomberg,https://www.techatbloomberg.com,,,committer,bloomberg,bloomberg/blazingmq-sdk-java,11,2023-11-15T21:05:40Z,,https://github.com/bloomberg-oss
+jfcere-coveo,Jean-Francois Cere,,,Coveo,https://github.com/jfcere,"Sherbrooke, QC, Canada",,top_committer,coveo,coveo/ui-kit,11,2026-09-15T18:27:20Z,,https://github.com/jfcere-coveo
 olamothe,Olivier Lamothe,olamothe@coveo.com,olamothe@coveo.com,Coveo,coveo.com,Quebec City,,top_committer,coveo,coveo/search-ui,10,2024-06-28T13:31:20Z,,https://github.com/olamothe
 phenggeler,phenggeler,,,,,,,top_committer,Recidiviz,Recidiviz/pulse-data,10,2026-09-04T18:01:49Z,,https://github.com/phenggeler
 stevebeattie,Steve Beattie,steve.beattie@chainguard.dev,steve.beattie@chainguard.dev,,,Anarchist Jurisdiction,,top_committer,chainguard-dev; chainguard-sandbox,chainguard-dev/osquery-defense-kit; chainguard-sandbox/osqtool,9,2026-07-01T20:48:11Z,,https://github.com/stevebeattie
 kpoineal,Kyle Poineal,,,Microsoft,,,,top_committer,Azure,Azure/Azure-Proactive-Resiliency-Library-v2,9,2025-06-25T20:41:19Z,,https://github.com/kpoineal
 comtalyst,Robin D.,comtalyst@outlook.com; rdeeboonchai@microsoft.com,rdeeboonchai@microsoft.com,,,United States,,top_committer,Azure,Azure/azure-sdk-for-go-extensions,9,2026-04-02T04:06:27Z,,https://github.com/comtalyst
 LogFlames,Elias Lundell,,,,eliaslundell.se,,,top_committer,chains-project,chains-project/maven-lockfile,9,2026-03-31T06:10:44Z,,https://github.com/LogFlames
+ocularminds,Festus B. Jejelowo,mail.festus@gmail.com,,"@Decionis, Ocular-Minds Software, @Optival Inc @trilogy-group  @Open-Rights-Exchange ",https://ocularminds.com,"Goteborg, Sweden",babafesti,top_committer,decionis,decionis/agent-safe-pipeline,9,2026-09-13T21:50:22Z,,https://github.com/ocularminds
 emilyemilyemilyemilyemilyemily,Emily Turner,,,,,,,top_committer,Recidiviz,Recidiviz/pulse-data,8,2026-09-04T23:32:51Z,,https://github.com/emilyemilyemilyemilyemilyemily
 santymendoza,Santy Mendoza,,,,,"Bay Area, CA",,top_committer,Recidiviz,Recidiviz/pulse-data,8,2026-09-04T21:50:53Z,,https://github.com/santymendoza
 ageiduschek,Anna Geiduschek,,,@Recidiviz,,San Francisco,,committer,Recidiviz,Recidiviz/pulse-data,8,2026-09-02T16:41:51Z,,https://github.com/ageiduschek
 aboissinot-coveo,Antoine Boissinot,,,@coveo @coveord ,,"Québec, QC",,top_committer,coveo,coveo/platform-client,8,2026-09-10T12:09:35Z,,https://github.com/aboissinot-coveo
 ngladychev,Nikolai Gladychev,nikolai@logchat.io,nikolai@logchat.io,,,,,top_committer,bronto-community,bronto-community/bronto-sdk-python,8,2026-09-18T13:48:37Z,,https://github.com/ngladychev
+jonapich,Jonathan Piché,jpiche@coveo.com,jpiche@coveo.com,,,"Québec, Canada",,top_committer,coveooss,coveooss/gotemplate,8,2025-07-24T13:20:35Z,,https://github.com/jonapich
+Anubyss-mihail,Michael,anubyssanubyss@gmail.com,,,,,,top_committer,foundationsedge,foundationsedge/nv-i18n,8,2026-09-04T07:23:52Z,,https://github.com/Anubyss-mihail
 btaillon-coveo,Benjamin Taillon,,,Coveo,,,,committer,coveo,coveo/search-ui,7,2023-06-19T20:49:40Z,,https://github.com/btaillon-coveo
 ,Xinyue.Wang,xinyue.wang@microsoft.com,xinyue.wang@microsoft.com,,,,,top_committer,Azure,Azure/go-asynctask,7,2023-06-27T23:53:01Z,,
 elisegonzal,elisegonzal,,,,,,,committer,Recidiviz,Recidiviz/pulse-data,7,2026-09-04T20:46:04Z,,https://github.com/elisegonzal
 zupo,Neyts Zupan,,,@teamniteo ,https://niteo.co/,Europe,nzupan,top_committer,ParetoSecurity,ParetoSecurity/agent,7,2026-01-16T02:18:34Z,,https://github.com/zupo
 agardin-coveo,agardin-coveo,agardin@coveo.com,agardin@coveo.com,,,,,top_committer,coveo,coveo/platform-client,7,2026-02-03T15:40:17Z,,https://github.com/agardin-coveo
 hgeraldino,Hector Geraldino,hgeraldino@bloomberg.net; hgeraldino@gmail.com,hgeraldino@bloomberg.net,Bloomberg LP,,New York,hgeraldino,committer,bloomberg,bloomberg/blazingmq-sdk-java,7,2026-08-07T12:40:14Z,,https://github.com/hgeraldino
+matteovivona,Matteo Vivona,matteo.vivona@me.com,,,matteovivona.it,"Udine, Italy",,top_committer,ducktors,ducktors/fastify-socket.io,7,2026-04-30T16:13:08Z,,https://github.com/matteovivona
 jack695,Vincent Jacquot,jacquotvincent96@gmail.com,,,,,,top_committer,OpenZeppelin,OpenZeppelin/ethernaut,6,2025-07-11T15:52:28Z,,https://github.com/jack695
 3v4np0w3ll,3v4np0w3ll,,,,,,,committer,chainguard-dev,chainguard-dev/osquery-defense-kit,6,2025-05-27T16:37:16Z,,https://github.com/3v4np0w3ll
 vedant-jaiswal,Vedant Jaiswal,,,Amazon Web Services,https://vedant-jaiswal.github.io,"Seattle, Washington",,top_committer,aws,aws/secrets-store-csi-driver-provider-aws,6,2025-07-24T07:53:20Z,,https://github.com/vedant-jaiswal
 clemgbld,Clement Gombauld,clement.gombauld@cpexterne.org; clementgombauld@hotmail.fr,clement.gombauld@cpexterne.org,,https://blog-clement-gombauld.vercel.app/,"Paris, France",Clemgbld_,top_committer,NodeSecure,NodeSecure/cli,6,2026-04-29T00:12:28Z,,https://github.com/clemgbld
 pasabanov,Petr Sabanov,pasabanov@murena.io,pasabanov@murena.io,,,,,top_committer,1Password,1Password/sys-locale,6,2024-10-24T23:16:04Z,,https://github.com/pasabanov
-y-lakhdar,ylakhdar,ylakhdar@coveo.com,ylakhdar@coveo.com,@coveo,,,,committer,coveo,coveo/search-ui,6,2025-04-26T01:24:34Z,,https://github.com/y-lakhdar
 nqd,nqd,nqdinhddt@gmail.com,,,,,,committer,base,base/triedb,6,2025-07-21T17:26:29Z,,https://github.com/nqd
 nqd-cb,nqd-cb,dinhnguyenatcb@gmail.com,,,,,,committer,base,base/triedb,6,2025-06-03T02:57:11Z,,https://github.com/nqd-cb
 tksh164,Takeshi Katano,takatano@outlook.com,,@microsoft,,"Tokyo, Japan",,top_committer,Azure,Azure/Azure-Proactive-Resiliency-Library-v2,6,2025-09-15T10:59:19Z,,https://github.com/tksh164
 DanMonroe,Dan Monroe,dan.monroe@addepar.com; danmonroe67@gmail.com,dan.monroe@addepar.com,@Addepar,,"Dublin, Ohio",,top_committer,Addepar,Addepar/ember-classy-page-object,6,2022-02-23T14:32:13Z,,https://github.com/DanMonroe
+mehcode,Ryan Leckey,leckey.ryan@gmail.com; ryan@launchbadge.com,ryan@launchbadge.com,Conduit Labs,,"Sacramento, CA, USA",mehcode,top_committer,hashgraph,hashgraph/ledger-app-hedera,6,2020-12-27T19:45:33Z,,https://github.com/mehcode
 mattlorimor,Matthew Lorimor,matt@m5wl5r.com; matthew.lorimor@chainguard.dev,matt@m5wl5r.com; matthew.lorimor@chainguard.dev,@chainguard-dev,https://m5wl5r.com,"Des Moines, Iowa",,committer,chainguard-dev,chainguard-dev/osquery-defense-kit,5,2025-06-03T19:20:56Z,,https://github.com/mattlorimor
 i-am-SR,Sumit Rawat,,,AWS,http://www.linkedin.com/in/rawat-sumit,"Seattle, WA",,committer,aws,aws/secrets-store-csi-driver-provider-aws,5,2026-03-10T21:53:13Z,,https://github.com/i-am-SR
 agong-coveo,Alice Gong,,,Coveo,,"Montreal, QC",,committer,coveo,coveo/platform-client,5,2026-08-19T12:50:18Z,,https://github.com/agong-coveo
 hallfox,Taylor Foxhall,lxmachina@gmail.com; tfoxhall@bloomberg.net,tfoxhall@bloomberg.net,Bloomberg LP,,,,committer,bloomberg,bloomberg/blazingmq,5,2026-09-15T18:01:54Z,,https://github.com/hallfox
 bbpetukhov,Dmitrii Petukhov,dpetukhov@bloomberg.net,dpetukhov@bloomberg.net,,,,,top_committer,bloomberg,bloomberg/blazingmq-sdk-python,5,2024-10-31T10:30:43Z,,https://github.com/bbpetukhov
+ahpook,Eric Sorenson,ahpook@github.com,,,,PDX,,committer,github,github/github-ospo,5,2026-05-06T18:20:27Z,,https://github.com/ahpook
+Jeffrey-Luszcz,Jeffrey Luszcz,,,,https://zebracatzebra.com,"Cambridge, MA",,committer,github,github/github-ospo,5,2026-03-06T01:29:37Z,,https://github.com/Jeffrey-Luszcz
+dotboris,Boris Bera,bbera@coveo.com,bbera@coveo.com,@Coveo,dotboris.io,Canada,,committer,coveooss,coveooss/gotemplate,5,2024-10-18T12:41:21Z,,https://github.com/dotboris
+fbeaudoincoveo,Frederic Beaudoin,fbeaudoin@coveo.com,fbeaudoin@coveo.com,@coveo,,Quebec,,committer,coveo,coveo/ui-kit,5,2026-09-18T18:32:51Z,,https://github.com/fbeaudoincoveo
+SimonMilord,Simon Milord,simon.milord@gmail.com,,Coveo,simonmilord.com,"Montreal, Canada",,committer,coveo,coveo/ui-kit,5,2026-09-18T16:14:00Z,,https://github.com/SimonMilord
+,Edouard Merle,edouard.merle@ledger.fr,edouard.merle@ledger.fr,,,,,committer,hashgraph,hashgraph/ledger-app-hedera,5,2022-02-15T09:37:44Z,,
+bigspider,Salvatore Ingala,,,,https://salvatoshi.com,,salvatoshi,committer,hashgraph,hashgraph/ledger-app-hedera,5,2021-11-10T15:33:18Z,,https://github.com/bigspider
+timothytkim,Timothy Kim,,,,https://linktr.ee/taeohkim,"Texas, United States",,committer,foundationsedge,foundationsedge/nv-i18n,5,2026-09-11T12:41:26Z,,https://github.com/timothytkim
 edknox,Ed Knox,,,,,,,top_committer,Azure,Azure/Azure-Proactive-Resiliency-Library-v2,4,2025-07-16T08:04:56Z,,https://github.com/edknox
 toofff,Toofff,yprou@coveo.com,yprou@coveo.com,@coveo,http://toofff.com,"Québec, Canada",,committer,coveo,coveo/platform-client,4,2026-05-04T14:02:39Z,,https://github.com/toofff
 Bryce-Soghigian,Bryce Soghigian,bsoghigian@gmail.com,,@coreweave,,NYC,,top_committer,Azure,Azure/azure-sdk-for-go-extensions,4,2025-08-07T18:47:12Z,,https://github.com/Bryce-Soghigian
 UnniKohonen,UnniKohonen,unni.kohonen@helsinki.fi,unni.kohonen@helsinki.fi,,,,,top_committer,NatLibFi,NatLibFi/BIBRA,4,2026-09-11T12:42:38Z,,https://github.com/UnniKohonen
+jonathan-strange,jonathan-strange,,,,,,,committer,foundationsedge,foundationsedge/nv-i18n,4,2026-09-11T15:35:47Z,,https://github.com/jonathan-strange
 ,Pol Ureña Heras,polurenaheras@pols-macbook-pro.local,,,,,,top_committer,OpenZeppelin,OpenZeppelin/ethernaut,3,2025-11-17T16:45:09Z,,
 zeearth,zeearth,zeearth@gmail.com,,,,"Paris, France",,committer,NodeSecure,NodeSecure/cli,3,2026-04-11T10:24:40Z,,https://github.com/zeearth
 ErwanRaulo,Erwan Raulo,erwan.raulo@outlook.fr,erwan.raulo@outlook.fr,,,Brittany,,committer,NodeSecure,NodeSecure/cli,3,2026-04-11T10:23:50Z,,https://github.com/ErwanRaulo
@@ -99,6 +136,10 @@ techxorcist,techxorcist,jason@techxorcist.net,jason@techxorcist.net,,,,,top_comm
 svc-security-workflows,svc-security-workflows,,,,,,,committer,Addepar,Addepar/ember-classy-page-object,3,2023-08-22T09:45:03Z,,https://github.com/svc-security-workflows
 twokul,Alex Navasardyan,alex.navasardyan@gmail.com,,,https://alex.social/,Los Angeles,twokul,committer,Addepar,Addepar/ember-classy-page-object,3,2022-08-29T17:08:07Z,,https://github.com/twokul
 godlygeek,Matt Wozniski,godlygeek@gmail.com; mwozniski@bloomberg.net,mwozniski@bloomberg.net,,,"Philadelphia, PA",,top_committer,bloomberg,bloomberg/blazingmq-sdk-python,3,2026-03-24T23:24:30Z,,https://github.com/godlygeek
+dblanchette,Denis Blanchette,dblanchette@coveo.com,dblanchette@coveo.com,@coveo @coveord ,,"Québec, Canada",,committer,coveooss,coveooss/gotemplate,3,2025-10-06T18:20:05Z,,https://github.com/dblanchette
+wilfriedroset,Wilfried ROSET,,,@ovh,,"Bordeaux, FR",,top_committer,grafana,grafana/detect-angular-dashboards,3,2024-03-20T15:50:40Z,,https://github.com/wilfriedroset
+alexwlchan,Alex Chan,alex@alexwlchan.net,alex@alexwlchan.net,,https://alexwlchan.net,UK,,top_committer,halostatue,halostatue/color,3,2025-12-24T08:57:13Z,,https://github.com/alexwlchan
+tardate,Paul Gallagher,gallagher.paul@gmail.com,,,https://blog.tardate.com,Singapore,,top_committer,halostatue,halostatue/color,3,2025-09-05T08:23:23Z,,https://github.com/tardate
 Draiakoo,Draiakoo,polureher@gmail.com,,,,,,committer,OpenZeppelin,OpenZeppelin/ethernaut,2,2025-11-18T23:46:36Z,,https://github.com/Draiakoo
 sylvie7788,sylvie7788,,,,,,,committer,aws,aws/secrets-store-csi-driver-provider-aws,2,2026-09-17T18:12:26Z,,https://github.com/sylvie7788
 gkayali,gkayali,,,,,,,committer,Azure,Azure/Azure-Proactive-Resiliency-Library-v2,2,2025-06-11T06:46:21Z,,https://github.com/gkayali
@@ -113,6 +154,13 @@ johng,John,me@joh.ng,me@joh.ng,,,London,,committer,bloomberg,bloomberg/blazingmq
 romge,Georg Romstorfer,,,,,"Vienna, Austria",,top_committer,aep-dev,aep-dev/aep-openapi-linter,2,2025-11-24T12:10:57Z,,https://github.com/romge
 rambleraptor,Alex Stephen,astephen2@gmail.com,,@google,alexstephen.me,"Seattle, WA",,committer,aep-dev,aep-dev/aep-openapi-linter,2,2025-11-06T08:42:29Z,,https://github.com/rambleraptor
 brazgouka-dv,DmitryBr,dmitry.brazgovka@doubleverify.com,dmitry.brazgovka@doubleverify.com,,,,,committer,aep-dev,aep-dev/aep-openapi-linter,2,2025-03-24T08:01:28Z,,https://github.com/brazgouka-dv
+pepordev,Pedro,parraortega.pedro@gmail.com,,,,,,top_committer,external-secrets,external-secrets/reloader,2,2026-08-15T13:48:41Z,,https://github.com/pepordev
+holgerjh,Holger Heinz,,,,,,,top_committer,grafana,grafana/crossplane-provider-grafana,2,2026-09-14T12:02:15Z,,https://github.com/holgerjh
+suntala,Arati R.,,,,,,,top_committer,grafana,grafana/crossplane-provider-grafana,2,2026-06-26T10:51:31Z,,https://github.com/suntala
+academo,Esteban Beltran,sergies@gmail.com,,Grafana Labs,,"Amsterdam, The Netherlands",,committer,grafana,grafana/detect-angular-dashboards,2,2025-06-17T13:51:10Z,,https://github.com/academo
+vanugrah,Anugrah Vijay,anugrah.vijay@gmail.com; avijay@medallia.com,avijay@medallia.com,Medallia ,,San Francisco ,,committer,grafana,grafana/detect-angular-dashboards,2,2024-09-12T07:30:20Z,,https://github.com/vanugrah
+Earlopain,Earlopain,,,,,,,top_committer,halostatue,halostatue/diff-lcs,2,2025-05-11T10:52:52Z,,https://github.com/Earlopain
+Richard-Degenne,Richard Degenne,richard.degenne@perfect-memory.com,richard.degenne@perfect-memory.com,Perfect Memory,https://richarddegenne.fr,Clermont-Ferrand,,top_committer,halostatue,halostatue/minitar,2,2025-10-31T13:28:07Z,,https://github.com/Richard-Degenne
 cankayafaruk,Ömer Faruk Çankaya,farukomercankaya@gmail.com,,,,Ankara,,committer,OpenZeppelin,OpenZeppelin/ethernaut,1,2025-09-12T12:35:01Z,,https://github.com/cankayafaruk
 agneil,Neil,neil@agilebits.com,neil@agilebits.com,,,,,top_committer,1Password,1Password/sys-locale,1,2023-07-31T17:46:22Z,,https://github.com/agneil
 Dinnerbone,Nathan Adams,dinnerbone@dinnerbone.com,dinnerbone@dinnerbone.com,@Mojang,http://dinnerbone.com,"Stockholm, Sweden",Dinnerbone,committer,1Password,1Password/sys-locale,1,2023-06-16T06:43:51Z,,https://github.com/Dinnerbone
@@ -140,8 +188,26 @@ Hashim1999164,Hashim Khan,,,Easypaisa,https://hashimkhan.dev,"Islamabad, Pakista
 ngrebenshikov,Nikolay Grebenshikov,grebenshikov.n@gmail.com,,Vimpelcom IT,,"Abakan, Russia",grebenshikov_n,top_committer,bolshakov,bolshakov/fear,1,2024-03-24T12:41:35Z,,https://github.com/ngrebenshikov
 archmage099,George,archmage09@gmail.com,,,,,,top_committer,bolshakov,bolshakov/fear,1,2021-10-07T20:29:31Z,,https://github.com/archmage099
 Lokideos,George Asfour,archmage@hey.com,,@evilmartians,,"Japan, Osaka",,committer,bolshakov,bolshakov/fear,1,2021-09-12T18:21:14Z,,https://github.com/Lokideos
+JPLachance,Jean-Philippe Lachance,jplachance@coveo.com,jplachance@coveo.com,@coveo ,,"Québec, Qc, Canada",,top_committer,coveooss,coveooss/exponential-backoff,1,2025-04-04T20:16:47Z,,https://github.com/JPLachance
+no23reason,Dan Homola,dan.homola@hotmail.cz,dan.homola@hotmail.cz,@gooddata ,https://medium.com/@DanHomola,"Prague, Czech Repuplic",,committer,coveooss,coveooss/exponential-backoff,1,2025-02-04T21:12:09Z,,https://github.com/no23reason
+hudovisk,Hudo Assenco,,,@SalvyLTD ,,"Curitiba, PR - Brazil",,committer,coveooss,coveooss/exponential-backoff,1,2020-04-03T00:18:20Z,,https://github.com/hudovisk
+,Sai Asish Y,say.apm35@gmail.com,,,,,,top_committer,external-secrets,external-secrets/reloader,1,2026-05-02T10:06:17Z,,
+Lantero,Carlos Ruiz Lantero,carlos.ruiz.lantero@gmail.com; carlos.ruiz.lantero@grafana.com,carlos.ruiz.lantero@grafana.com,@grafana,,Valencia,,committer,grafana,grafana/crossplane-provider-grafana,1,2026-09-14T18:53:40Z,,https://github.com/Lantero
+khalilhaji,Khalil Haji,khalil.haji@grafana.com,khalil.haji@grafana.com,,https://haji.dev,Boston,,committer,grafana,grafana/crossplane-provider-grafana,1,2026-05-07T18:32:39Z,,https://github.com/khalilhaji
+ericmj,Eric Meadows-Jönsson,eric.meadows.jonsson@gmail.com,,,,"Gothenburg, Sweden",emjii,top_committer,erlef,erlef/mix-dependency-submission,1,2026-09-19T17:05:17Z,,https://github.com/ericmj
+kivra-pauoli,Paulo F. Oliveira,,,@kivra,,"Lisbon, Portugal",,top_committer,erlef,erlef/mix-dependency-submission,1,2026-08-18T11:54:36Z,,https://github.com/kivra-pauoli
+iamdhakrey,Hrithik Dhakrey,,,@Netweb-Technologies,https://iamdhakrey.dev,"Delhi,India",iamdhakrey,top_committer,ilai-deutel,ilai-deutel/kibi,1,2026-02-01T14:50:35Z,,https://github.com/iamdhakrey
+Annih,Baptiste Courtois,b.courtois@criteo.com,b.courtois@criteo.com,Criteo,,France,,top_committer,halostatue,halostatue/diff-lcs,1,2025-01-31T16:15:43Z,,https://github.com/Annih
+headius,Charles Oliver Nutter,headius@headius.com,headius@headius.com,Headius Enterprises,blog.headius.com,Minneapolis,headius,committer,halostatue,halostatue/color,1,2025-06-24T16:42:38Z,,https://github.com/headius
+sorah,Sorah Fukumori,her@sorah.jp,her@sorah.jp,@ivry-inc | AS59128 @kmc-jp,https://sorah.jp/,"Tokyo, Japan",sora_h,top_committer,halostatue,halostatue/minitar,1,2025-06-11T00:28:34Z,,https://github.com/sorah
 Dmitriy-NK,Dmytro Kuzmenko,d.kuzmenko@samsung.com,d.kuzmenko@samsung.com,@Samsung ,,,,harden_runner_adopter,Samsung,Samsung/CredSweeper,0,,2022-02-17T07:58:54Z,https://github.com/Dmitriy-NK
 vifer,Víctor Fernández Saborit,victorfs.sp@gmail.com,,,,,,harden_runner_adopter,PaddleHQ,PaddleHQ/paddle-go-sdk,0,,2024-05-07T12:50:40Z,https://github.com/vifer
 nbhargava,Nikhil Bhargava,,,,,,,harden_runner_adopter,Recidiviz,Recidiviz/pulse-data,0,,2021-01-19T19:51:06Z,https://github.com/nbhargava
 wsanchez,Wilfredo Sánchez Vega,wsanchez@wsanchez.net,wsanchez@wsanchez.net,,,,,harden_runner_adopter,burningmantech,burningmantech/ranger-clubhouse-web,0,,2019-09-24T22:48:22Z,https://github.com/wsanchez
 NickKeller,Nick Keller,nikelle@microsoft.com,nikelle@microsoft.com,@Azure ,,,,harden_runner_adopter,Azure,Azure/azure-sdk-for-go-extensions,0,,2023-07-19T17:14:31Z,https://github.com/NickKeller
+nschonni,Nick Schonning,nschonni@gmail.com,,Treasury Board of Canada Secretariat,,,,harden_runner_adopter,github,github/github-ospo,0,,2023-03-15T03:20:42Z,https://github.com/nschonni
+decionis-bot[bot],decionis-bot[bot],,,,,,,harden_runner_adopter,decionis,decionis/agent-safe-pipeline,0,,2026-08-17T07:46:21Z,https://github.com/decionis-bot[bot]
+alemagio,Alessandro Magionami,alessandro.magionami@gmail.com,,Speckle,,,,harden_runner_adopter,ducktors,ducktors/fastify-socket.io,0,,2020-08-20T13:48:33Z,https://github.com/alemagio
+,Julien Duchesne,jduchesne@coveo.com,jduchesne@coveo.com,,,,,harden_runner_adopter,coveooss,coveooss/gotemplate,0,,2019-09-28T02:02:53Z,
+gusfcarvalho,Gustavo Fernandes de Carvalho,,,Container Solutions,,,,harden_runner_adopter,external-secrets,external-secrets/reloader,0,,2025-03-26T16:16:41Z,https://github.com/gusfcarvalho
+yhql,yhql,victor_servant@hotmail.com,,,,,,harden_runner_adopter,hashgraph,hashgraph/ledger-app-hedera,0,,2021-09-24T12:36:21Z,https://github.com/yhql
