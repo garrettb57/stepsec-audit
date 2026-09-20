@@ -87,7 +87,6 @@ OWNER_FIELDS = """
   login __typename url
   ... on Organization {
     name description email websiteUrl location twitterUsername isVerified createdAt avatarUrl
-    publicMembers: membersWithRole { totalCount }
     publicRepos: repositories(privacy: PUBLIC) { totalCount }
     hasSponsorsListing
   }
@@ -125,7 +124,6 @@ def _flatten_owner(node: dict) -> dict:
         "is_verified": node.get("isVerified"),
         "is_hireable": node.get("isHireable"),
         "created_at": node.get("createdAt"),
-        "public_members": (node.get("publicMembers") or {}).get("totalCount"),
         "public_repos": (node.get("publicRepos") or {}).get("totalCount"),
         "followers": (node.get("followers") or {}).get("totalCount"),
         "has_sponsors": node.get("hasSponsorsListing"),

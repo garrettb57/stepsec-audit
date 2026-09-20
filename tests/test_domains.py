@@ -1,4 +1,15 @@
-from crawler.domains import classify_email, domain_from_url, infer_account_domain, is_bot
+from crawler.domains import classify_email, domain_from_url, domain_matches_name, infer_account_domain, is_bot
+
+
+def test_domain_matches_name():
+    assert domain_matches_name("coveo.com", "coveo")
+    assert domain_matches_name("paddle.com", "PaddleHQ")
+    assert domain_matches_name("addepar.com", "Addepar", None)
+    assert domain_matches_name("chainguard.dev", "chainguard-sandbox")
+    assert domain_matches_name("burningman.org", "burningmantech")
+    assert not domain_matches_name("toasttab.com", "block")
+    assert not domain_matches_name("baby.com.ar", "caddyserver")
+    assert not domain_matches_name("ibm.com", "aws")
 
 
 def test_classify_email():
@@ -26,6 +37,18 @@ def test_infer_domain_precedence():
     assert infer_account_domain(owner, ["https://acme.github.io"], emails) == ("acme.com", "committer_emails")
     assert infer_account_domain(owner, ["https://acme.dev"], ["x@gmail.com"]) == ("acme.dev", "repo_homepage")
     assert infer_account_domain(owner, [], ["x@gmail.com"]) == (None, None)
+    # a single personal domain is weak, not authoritative
+    assert infer_account_domain(owner, [], ["scm@baby.com.ar"], login="caddyserver") == ("baby.com.ar", "committer_emails_weak")
+
+
+def test_infer_domain_name_match_beats_majority():
+    owner = {"login": "PaddleHQ", "name": "Paddle"}
+    emails = ["a@contractor.io", "b@contractor.io", "c@contractor.io", "d@paddle.com"]
+    assert infer_account_domain(owner, [], emails, login="PaddleHQ") == ("paddle.com", "committer_emails_name_match")
+    owner = {"login": "chainguard-dev", "name": None}
+    assert infer_account_domain(owner, [], ["x@trendyol.com", "y@chainguard.dev"], login="chainguard-dev") == ("chainguard.dev", "committer_emails_name_match")
+    owner = {"login": "OpenZeppelin", "name": "OpenZeppelin"}
+    assert infer_account_domain(owner, ["https://openzeppelin.com"], ["me@nami.sh"], login="OpenZeppelin") == ("openzeppelin.com", "repo_homepage_name_match")
 
 
 def test_is_bot():

@@ -13,6 +13,12 @@ FREEMAIL = {
     "foxmail.com", "yandex.com", "yandex.ru", "ya.ru", "fastmail.com", "fastmail.fm", "hey.com", "zoho.com",
     "tutanota.com", "tuta.io", "mail.ru", "naver.com", "hushmail.com", "posteo.de", "posteo.net", "mailbox.org",
     "duck.com", "example.com", "localhost", "localhost.localdomain", "users.noreply.github.com", "noreply.github.com",
+    # ISP mailboxes
+    "sbcglobal.net", "comcast.net", "att.net", "verizon.net", "bellsouth.net", "cox.net", "charter.net", "optonline.net",
+    "earthlink.net", "btinternet.com", "sky.com", "virginmedia.com", "orange.fr", "free.fr", "wanadoo.fr", "laposte.net",
+    "t-online.de", "freenet.de", "arcor.de", "libero.it", "alice.it", "telus.net", "shaw.ca", "rogers.com", "sympatico.ca",
+    "bigpond.com", "optusnet.com.au", "xtra.co.nz", "rediffmail.com", "seznam.cz", "wp.pl", "o2.pl", "onet.pl", "ukr.net",
+    "rambler.ru", "bk.ru", "list.ru", "inbox.ru", "daum.net", "hanmail.net", "sina.com", "sohu.com", "yeah.net", "139.com",
 }
 FREEMAIL_SUFFIXES = (".noreply.github.com", ".local", ".localdomain", ".lan", ".internal", ".test", ".invalid")
 
@@ -97,13 +103,51 @@ def domain_from_url(url: str | None) -> str | None:
     return host
 
 
+_NORM_RE = re.compile(r"[^a-z0-9]")
+_GENERIC_SUFFIXES = ("hq", "inc", "labs", "lab", "dev", "io", "oss", "org", "team", "tech", "official", "community", "sandbox")
+
+
+def _name_tokens(*names: str | None) -> set[str]:
+    out = set()
+    for n in names:
+        if not n:
+            continue
+        t = _NORM_RE.sub("", n.lower())
+        if len(t) >= 3:
+            out.add(t)
+            for suf in _GENERIC_SUFFIXES:
+                if t.endswith(suf) and len(t) - len(suf) >= 3:
+                    out.add(t[: -len(suf)])
+    return out
+
+
+def _domain_label(dom: str) -> str:
+    parts = dom.split(".")
+    # foo.co.uk -> foo ; foo.com -> foo
+    if len(parts) >= 3 and len(parts[-2]) <= 3:
+        return parts[-3]
+    return parts[-2] if len(parts) >= 2 else parts[0]
+
+
+def domain_matches_name(dom: str, *names: str | None) -> bool:
+    label = _NORM_RE.sub("", _domain_label(dom))
+    if len(label) < 3:
+        return False
+    for t in _name_tokens(*names):
+        if label == t or (len(t) >= 5 and (t in label or label in t)):
+            return True
+    return False
+
+
 def infer_account_domain(
     owner: dict,
     repo_homepages: list[str | None],
     committer_emails: list[str],
+    login: str | None = None,
 ) -> tuple[str | None, str | None]:
     """Return (domain, source). Precedence: profile website, profile email,
-    majority corporate committer domain, repo homepage."""
+    committer domain matching the account name, majority corporate committer
+    domain (≥2 emails), repo homepage, then a single committer domain as weak."""
     d = domain_from_url(owner.get("websiteUrl"))
     if d:
         return d, "owner_website"
@@ -111,9 +155,17 @@ def infer_account_domain(
     if is_corporate_domain(d):
         return d, "owner_email"
     counts = Counter(dom for dom in (email_domain(e) for e in committer_emails) if is_corporate_domain(dom))
+    names = (login, owner.get("login"), owner.get("name"))
+    for dom, _ in counts.most_common():
+        if domain_matches_name(dom, *names):
+            return dom, "committer_emails_name_match"
+    for hp in repo_homepages:
+        d = domain_from_url(hp)
+        if d and domain_matches_name(d, *names):
+            return d, "repo_homepage_name_match"
     if counts:
         dom, n = counts.most_common(1)[0]
-        if n >= 2 or len(counts) == 1:
+        if n >= 2:
             return dom, "committer_emails"
     for hp in repo_homepages:
         d = domain_from_url(hp)

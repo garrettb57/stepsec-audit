@@ -126,7 +126,7 @@ def run(args) -> int:
 
     # -------------------------------------------------------------- enrich
     if "enrich" in phases and budget.ok():
-        todo = [r for r in all_repos if r not in repos]
+        todo = [r for r in all_repos if r not in repos or repos[r].get("missing")]
         log.info("enrich: %d repos", len(todo))
         for i in range(0, len(todo), 1000):
             if not budget.ok():
@@ -134,7 +134,7 @@ def run(args) -> int:
             repos.update(enrich.enrich_repos(gh, todo[i : i + 1000]))
             st.save("repos", repos)
         logins = sorted({(repos.get(r) or {}).get("owner") or r.split("/")[0] for r in all_repos})
-        todo_o = [l for l in logins if l not in owners]
+        todo_o = [l for l in logins if l not in owners or owners[l].get("missing")]
         log.info("enrich: %d owners", len(todo_o))
         for i in range(0, len(todo_o), 1000):
             if not budget.ok():
@@ -172,7 +172,14 @@ def run(args) -> int:
         repo_owner = {r: (repos.get(r) or {}).get("owner") or r.split("/")[0] for r in all_repos}
         people = contacts_mod.aggregate_people(contacts, repo_owner)
         by_acct = contacts_mod.account_contact_summary(people)
-        repo_rows = export.build_repo_rows({r: repos.get(r, {"repo": r}) for r in all_repos}, wf, prs, contacts, discovered)
+        scoped = set(all_repos)
+        repo_rows = export.build_repo_rows(
+            {r: repos.get(r, {"repo": r}) for r in all_repos},
+            {r: v for r, v in wf.items() if r in scoped},
+            {r: v for r, v in prs.items() if r in scoped},
+            contacts,
+            discovered,
+        )
         acct_rows = export.build_account_rows(repo_rows, owners, by_acct)
         contact_rows = export.build_contact_rows(people)
         file_rows = export.build_file_rows(wf_raw)

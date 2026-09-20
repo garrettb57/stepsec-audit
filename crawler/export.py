@@ -13,6 +13,9 @@ log = logging.getLogger(__name__)
 
 SEP = "; "
 
+# The vendor's own org and forks of its repos are not prospects.
+EXCLUDED_ACCOUNTS = {"step-security"}
+
 
 def _j(v) -> str:
     if v is None:
@@ -49,7 +52,7 @@ REPO_COLUMNS = [
 
 ACCOUNT_COLUMNS = [
     "account", "account_type", "account_url", "account_name", "company_hint", "inferred_domain", "domain_source",
-    "website", "public_email", "location", "twitter", "description", "is_verified_org", "public_members",
+    "website", "public_email", "location", "twitter", "description", "is_verified_org",
     "public_repos", "followers", "user_orgs", "account_created_at", "tier", "tier_reason",
     "repos_using_stepsecurity", "repos_with_harden_runner", "repos_bot_pr_only", "repo_list", "total_stars", "max_stars",
     "top_repo", "languages", "first_adoption", "latest_push", "egress_block_repos", "egress_audit_repos",
@@ -73,6 +76,10 @@ def build_repo_rows(repos: dict, wf: dict, prs: dict, contacts: dict, discovered
     for repo in sorted(set(repos) | set(wf) | set(prs)):
         r = dict(repos.get(repo) or {"repo": repo})
         if r.get("missing"):
+            continue
+        if repo.split("/")[0].lower() in EXCLUDED_ACCOUNTS:
+            continue
+        if r.get("is_fork") and (r.get("parent") or "").split("/")[0].lower() in EXCLUDED_ACCOUNTS:
             continue
         r.update(wf.get(repo) or {})
         pr_list = prs.get(repo) or []
@@ -107,8 +114,10 @@ def build_repo_rows(repos: dict, wf: dict, prs: dict, contacts: dict, discovered
 
 
 def _tier(acct: dict, owner: dict) -> tuple[str, str]:
-    if acct["policy_store_repos"] or acct["self_hosted_repos"]:
-        return "likely_customer", "uses policy store / self-hosted harden-runner (paid tier features)"
+    if acct["policy_store_repos"]:
+        return "likely_customer", "harden-runner policy store / API key in use (paid tier feature)"
+    if acct["self_hosted_repos"]:
+        return "power_user", "harden-runner on self-hosted runners"
     if acct["repos_with_harden_runner"] == 0:
         if acct["repos_using_stepsecurity"]:
             return "other_actions_only", "uses StepSecurity maintained actions but not harden-runner"
@@ -123,8 +132,11 @@ def _tier(acct: dict, owner: dict) -> tuple[str, str]:
 
 
 def build_account_rows(repo_rows: list[dict], owners: dict, people_by_acct: dict) -> list[dict]:
+    """One row per owner. Forks are listed in repos.csv but do not count as adoption."""
     by_acct: dict[str, list[dict]] = {}
     for r in repo_rows:
+        if r.get("is_fork"):
+            continue
         by_acct.setdefault(r["owner"], []).append(r)
     rows = []
     for acct, reps in by_acct.items():
@@ -139,7 +151,7 @@ def build_account_rows(repo_rows: list[dict], owners: dict, people_by_acct: dict
         ppl = people_by_acct.get(acct) or {"contacts": [], "corporate_emails": set(), "adopters": set()}
         corp_emails = sorted(ppl["corporate_emails"])
         committer_emails = [e for p in ppl["contacts"] for e in p["emails"]]
-        domain, source = infer_account_domain(o, [r.get("homepage") for r in reps], committer_emails)
+        domain, source = infer_account_domain(o, [r.get("homepage") for r in reps], committer_emails, login=acct)
         other_actions = sorted({a for r in reps for a in (r.get("other_stepsecurity_actions") or [])})
         a = {
             "account": acct,
@@ -155,7 +167,6 @@ def build_account_rows(repo_rows: list[dict], owners: dict, people_by_acct: dict
             "twitter": o.get("twitter"),
             "description": o.get("description"),
             "is_verified_org": o.get("is_verified"),
-            "public_members": o.get("public_members"),
             "public_repos": o.get("public_repos"),
             "followers": o.get("followers"),
             "user_orgs": o.get("user_orgs"),
