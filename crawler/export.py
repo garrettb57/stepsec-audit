@@ -116,14 +116,14 @@ def build_repo_rows(repos: dict, wf: dict, prs: dict, contacts: dict, discovered
 def _tier(acct: dict, owner: dict) -> tuple[str, str]:
     if acct["policy_store_repos"]:
         return "likely_customer", "harden-runner policy store / API key in use (paid tier feature)"
+    if (owner.get("type") or acct.get("account_type")) == "User":
+        return "individual", "user-owned account"
     if acct["self_hosted_repos"]:
         return "power_user", "harden-runner on self-hosted runners"
     if acct["repos_with_harden_runner"] == 0:
         if acct["repos_using_stepsecurity"]:
             return "other_actions_only", "uses StepSecurity maintained actions but not harden-runner"
         return "bot_pr_only", "StepSecurity bot PRs found but harden-runner not live on default branch"
-    if owner.get("type") == "User":
-        return "individual", "user-owned account"
     if acct["egress_block_repos"] and (acct["repos_with_harden_runner"] >= 3 or (acct["workflow_coverage_pct"] or 0) >= 50):
         return "power_user", "egress block enabled across multiple repos or majority of workflows"
     if acct["egress_block_repos"]:

@@ -21,6 +21,10 @@ def test_classify_email():
 
 def test_domain_from_url():
     assert domain_from_url("https://www.acme.com/about") == "acme.com"
+    assert domain_from_url("https://opensource.block.xyz") == "block.xyz"
+    assert domain_from_url("https://docs.microsoft.com/en-us/azure/") == "microsoft.com"
+    assert domain_from_url("https://a.b.example.co.uk/x") == "example.co.uk"
+    assert domain_from_url("https://chains.proj.kth.se") == "kth.se"
     assert domain_from_url("acme.io") == "acme.io"
     assert domain_from_url("https://acme.github.io/docs") is None
     assert domain_from_url("https://twitter.com/acme") is None

@@ -81,6 +81,19 @@ def classify_email(email: str | None) -> str:
     return "corporate" if is_corporate_domain(email_domain(email)) else "freemail"
 
 
+_SECOND_LEVEL = {"co", "com", "org", "net", "ac", "gov", "edu", "or", "ne", "go", "in", "id", "ltd", "plc", "me"}
+
+
+def registrable(host: str) -> str:
+    """Crude eTLD+1: foo.bar.example.com -> example.com; a.b.example.co.uk -> example.co.uk."""
+    parts = host.split(".")
+    if len(parts) <= 2:
+        return host
+    if len(parts[-1]) == 2 and parts[-2] in _SECOND_LEVEL:
+        return ".".join(parts[-3:])
+    return ".".join(parts[-2:])
+
+
 def domain_from_url(url: str | None) -> str | None:
     if not url:
         return None
@@ -100,7 +113,7 @@ def domain_from_url(url: str | None) -> str | None:
         host = host[4:]
     if "." not in host or host.endswith(HOSTING_SUFFIXES) or host in HOSTING_SUFFIXES:
         return None
-    return host
+    return registrable(host)
 
 
 _NORM_RE = re.compile(r"[^a-z0-9]")
