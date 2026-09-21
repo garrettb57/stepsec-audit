@@ -36,16 +36,23 @@ class GitHub:
             }
         )
         self.requests_made = 0
+        self.requests_by_bucket: dict[str, int] = {}
         # bucket -> (remaining, reset_epoch)
         self._buckets: dict[str, tuple[int, int]] = {}
+        # bucket -> limit, as reported by X-RateLimit-Limit
+        self.limits: dict[str, int] = {}
 
     # ------------------------------------------------------------------ utils
-    def _track(self, resp: requests.Response) -> None:
-        bucket = resp.headers.get("X-RateLimit-Resource")
+    def _track(self, resp: requests.Response, default_bucket: str = "core") -> None:
+        bucket = resp.headers.get("X-RateLimit-Resource") or default_bucket
         remaining = resp.headers.get("X-RateLimit-Remaining")
         reset = resp.headers.get("X-RateLimit-Reset")
-        if bucket and remaining is not None and reset:
+        limit = resp.headers.get("X-RateLimit-Limit")
+        if remaining is not None and reset:
             self._buckets[bucket] = (int(remaining), int(reset))
+        if limit and limit.isdigit():
+            self.limits[bucket] = int(limit)
+        self.requests_by_bucket[bucket] = self.requests_by_bucket.get(bucket, 0) + 1
 
     def _wait_if_exhausted(self, bucket: str) -> None:
         rem, reset = self._buckets.get(bucket, (1, 0))
@@ -66,6 +73,25 @@ class GitHub:
 
     def bucket_status(self) -> dict[str, tuple[int, int]]:
         return dict(self._buckets)
+
+    def check_budget(self, min_core: int = 5000) -> dict:
+        """Fail fast on a token with the 1,000/hour GITHUB_TOKEN budget.
+        GET /rate_limit does not count against any limit."""
+        data = self.rest_json("/rate_limit")
+        res = data.get("resources") or {}
+        core = (res.get("core") or {}).get("limit", 0)
+        gql = (res.get("graphql") or {}).get("limit", 0)
+        for name, r in res.items():
+            if isinstance(r, dict) and "limit" in r:
+                self.limits[name] = r["limit"]
+        if core < min_core:
+            raise GitHubError(
+                f"token core rate limit is {core}/hour (GraphQL {gql}); the crawler needs a personal access token "
+                f"with {min_core}/hour. Add repo secret CRAWLER_TOKEN (fine-grained PAT, public repositories, read-only)."
+            )
+        log.info("rate limits: core %d/h, graphql %d/h, search %s/min, code_search %s/min", core, gql,
+                 (res.get("search") or {}).get("limit"), (res.get("code_search") or {}).get("limit"))
+        return {k: v.get("limit") for k, v in res.items() if isinstance(v, dict)}
 
     # ------------------------------------------------------------------- REST
     def rest(
@@ -92,7 +118,7 @@ class GitHub:
                 backoff = min(backoff * 2, 120)
                 continue
             self.requests_made += 1
-            self._track(resp)
+            self._track(resp, bucket)
 
             if resp.status_code in (403, 429):
                 body = resp.text.lower()
@@ -141,7 +167,14 @@ class GitHub:
         params = {"q": q, "page": page, "per_page": per_page, **extra}
         for attempt in range(4):
             resp = self.rest(f"/search/{kind}", params=params, bucket=bucket)
-            data = resp.json()
+            try:
+                data = resp.json()
+            except ValueError as e:
+                log.warning("search: undecodable response (attempt %d): %s", attempt, str(e)[:80])
+                if attempt == 3:
+                    raise GitHubError(f"search {kind}: undecodable response for {q!r} page {page}")
+                time.sleep(5)
+                continue
             if data.get("incomplete_results") and attempt < 3:
                 log.info("incomplete_results for %r page %d; retrying", q, page)
                 time.sleep(3)
@@ -166,7 +199,7 @@ class GitHub:
                 backoff = min(backoff * 2, 120)
                 continue
             self.requests_made += 1
-            self._track(resp)
+            self._track(resp, "graphql")
             if resp.status_code in (403, 429):
                 wait = self._retry_wait(resp)
                 log.warning("graphql rate limited; sleeping %ss", wait)
@@ -177,7 +210,17 @@ class GitHub:
                 raise GitHubError(f"graphql {resp.status_code}: {resp.text[:200]}")
             if resp.status_code >= 400:
                 raise GitHubError(f"graphql {resp.status_code}: {resp.text[:400]}")
-            data = resp.json()
+            try:
+                data = resp.json()
+            except ValueError as e:
+                # truncated or non-JSON body; transient on GitHub's side. Retry, then let
+                # run_batched shrink the batch by raising GitHubError.
+                log.warning("graphql: undecodable response (%d bytes, attempt %d): %s", len(resp.content), attempt, str(e)[:80])
+                if attempt >= 2:
+                    raise GitHubError(f"graphql: undecodable response after {attempt + 1} attempts ({len(resp.content)} bytes)")
+                time.sleep(backoff)
+                backoff = min(backoff * 2, 120)
+                continue
             errors = data.get("errors") or []
             if errors and not data.get("data"):
                 types = {e.get("type") for e in errors}

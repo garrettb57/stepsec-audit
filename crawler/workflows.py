@@ -140,34 +140,69 @@ def _build_query(batch: list[tuple[str, list[str]]]) -> str:
     return "".join(parts)
 
 
+# Workflow file names most likely to carry harden-runner, for repos where we
+# have no code-search hit and must pick from the tree listing.
+PREFERRED_WF_RE = re.compile(r"ci|build|release|publish|test|codeql|scorecard|dependency", re.IGNORECASE)
+
+
+def select_tree_paths(names: list[str], cap: int = 12) -> list[str]:
+    """Choose up to `cap` workflow files from a .github/workflows listing,
+    preferred names first, then the rest alphabetically."""
+    yml = sorted({n for n in names if n.lower().endswith((".yml", ".yaml"))}, key=str.lower)
+    preferred = [n for n in yml if PREFERRED_WF_RE.search(n)]
+    rest = [n for n in yml if n not in preferred]
+    return [".github/workflows/" + n for n in (preferred + rest)[:cap]]
+
+
+def _parse_batch(batch, data, out, source: str) -> list[tuple[str, list[str]]]:
+    """Fill `out` from one GraphQL response. Returns repos that had no paths
+    but do have a workflow tree, with the paths to fetch on a second pass."""
+    d = data.get("data") or {}
+    second: list[tuple[str, list[str]]] = []
+    for i, (repo, paths) in enumerate(batch):
+        node = d.get(f"r{i}")
+        if not node:
+            out[repo] = {"missing": True, "files": [], "source": source}
+            continue
+        entries = ((node.get("tree") or {}).get("entries")) or []
+        wf_names = [e["name"] for e in entries if e.get("type") == "blob" and e["name"].lower().endswith((".yml", ".yaml"))]
+        files = []
+        for j, p in enumerate(paths):
+            blob = node.get(f"f{j}")
+            if not blob or blob.get("isBinary") or not blob.get("text"):
+                continue
+            files.append(parse_workflow(blob["text"], p) | {"bytes": blob.get("byteSize")})
+        out[repo] = {
+            "missing": False,
+            "default_branch": (node.get("defaultBranchRef") or {}).get("name"),
+            "workflows_total": len(wf_names),
+            "files": files,
+            "source": source,
+        }
+        if not paths and wf_names:
+            second.append((repo, select_tree_paths(wf_names)))
+    return second
+
+
 def fetch_and_parse(gh: GitHub, discovered: dict[str, list[dict]], batch_size: int = 25, max_files_per_repo: int = 12) -> dict[str, dict]:
-    """discovered: repo -> [file hit dicts]; returns repo -> summary."""
+    """discovered: repo -> [file hit dicts]; returns repo -> summary.
+
+    Repos with no code-search hit (PR-only discovery) get a second pass that
+    fetches up to `max_files_per_repo` workflow files chosen from the tree
+    listing the first pass already returned (P0.5). `source` records which.
+    """
     items = []
     for repo, files in discovered.items():
         paths = sorted({f["path"] for f in files if f.get("path")})[:max_files_per_repo]
         items.append((repo, paths))
     out: dict[str, dict] = {}
+    second: list[tuple[str, list[str]]] = []
     for batch, data in run_batched(gh, items, _build_query, batch_size):
-        d = data.get("data") or {}
-        for i, (repo, paths) in enumerate(batch):
-            node = d.get(f"r{i}")
-            if not node:
-                out[repo] = {"missing": True, "files": []}
-                continue
-            entries = ((node.get("tree") or {}).get("entries")) or []
-            wf_names = [e["name"] for e in entries if e.get("type") == "blob" and e["name"].lower().endswith((".yml", ".yaml"))]
-            files = []
-            for j, p in enumerate(paths):
-                blob = node.get(f"f{j}")
-                if not blob or blob.get("isBinary") or not blob.get("text"):
-                    continue
-                files.append(parse_workflow(blob["text"], p) | {"bytes": blob.get("byteSize")})
-            out[repo] = {
-                "missing": False,
-                "default_branch": (node.get("defaultBranchRef") or {}).get("name"),
-                "workflows_total": len(wf_names),
-                "files": files,
-            }
+        second.extend(_parse_batch(batch, data, out, "code_search"))
+    if second:
+        log.info("workflows: tree-scan second pass for %d PR-only repos", len(second))
+        for batch, data in run_batched(gh, second, _build_query, batch_size):
+            _parse_batch(batch, data, out, "tree_scan")
     return out
 
 
@@ -191,7 +226,8 @@ def summarize_repo(summary: dict) -> dict:
         "harden_runner_versions": versions,
         "egress_block": egress.count("block"),
         "egress_audit": egress.count("audit"),
-        "egress_unset": egress.count("unset") + egress.count("expr"),
+        "egress_unset": egress.count("unset"),
+        "egress_expr": egress.count("expr"),
         "allowed_endpoints_max": max([u.get("allowed_endpoints_count", 0) for u in hr] or [0]),
         "disable_sudo_any": any(u.get("disable_sudo") for u in hr),
         "disable_telemetry_any": any(u.get("disable_telemetry") for u in hr),

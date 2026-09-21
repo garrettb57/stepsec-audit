@@ -7,36 +7,45 @@ from .gh import GitHub, gql_str, run_batched
 
 log = logging.getLogger(__name__)
 
-REPO_FIELDS = """
+# Light pass: every surviving repo. Cheap scalars and single-hop fields only.
+REPO_FIELDS_LIGHT = """
   nameWithOwner name url description homepageUrl
-  isFork isArchived isMirror isTemplate isInOrganization isSecurityPolicyEnabled hasIssuesEnabled
-  stargazerCount forkCount diskUsage
-  watchers { totalCount }
-  openIssues: issues(states: OPEN) { totalCount }
-  openPRs: pullRequests(states: OPEN) { totalCount }
-  createdAt pushedAt updatedAt
+  isFork isArchived isMirror isTemplate isInOrganization isSecurityPolicyEnabled
+  stargazerCount forkCount createdAt pushedAt updatedAt
   primaryLanguage { name }
-  languages(first: 5, orderBy: {field: SIZE, direction: DESC}) { nodes { name } }
   licenseInfo { spdxId }
-  repositoryTopics(first: 20) { nodes { topic { name } } }
   defaultBranchRef { name }
-  latestRelease { tagName publishedAt }
-  fundingLinks { platform url }
   parent { nameWithOwner }
   owner { login __typename url }
 """
 
+# Deep pass: repos of the top-N accounts only. Connections cost more.
+REPO_FIELDS_DEEP = """
+  nameWithOwner
+  hasIssuesEnabled diskUsage
+  watchers { totalCount }
+  openIssues: issues(states: OPEN) { totalCount }
+  openPRs: pullRequests(states: OPEN) { totalCount }
+  languages(first: 5, orderBy: {field: SIZE, direction: DESC}) { nodes { name } }
+  repositoryTopics(first: 20) { nodes { topic { name } } }
+  latestRelease { tagName publishedAt }
+  fundingLinks { platform url }
+"""
 
-def _repo_query(batch: list[str]) -> str:
+REPO_FIELDS = REPO_FIELDS_LIGHT + REPO_FIELDS_DEEP  # legacy: full fetch in one go
+
+
+def _repo_query(batch: list[str], fields: str = REPO_FIELDS) -> str:
     parts = ["query { rateLimit { cost remaining resetAt }"]
     for i, repo in enumerate(batch):
         owner, name = repo.split("/", 1)
-        parts.append(f"r{i}: repository(owner: {gql_str(owner)}, name: {gql_str(name)}) {{ {REPO_FIELDS} }} ")
+        parts.append(f"r{i}: repository(owner: {gql_str(owner)}, name: {gql_str(name)}) {{ {fields} }} ")
     parts.append("}")
     return "".join(parts)
 
 
 def _flatten_repo(node: dict) -> dict:
+    """Flatten whichever fields are present; absent ones come out as None/[]."""
     return {
         "repo": node.get("nameWithOwner"),
         "name": node.get("name"),
@@ -72,15 +81,39 @@ def _flatten_repo(node: dict) -> dict:
     }
 
 
-def enrich_repos(gh: GitHub, repos: list[str], batch_size: int = 25) -> dict[str, dict]:
+def enrich_repos(gh: GitHub, repos: list[str], batch_size: int = 100, fields: str = REPO_FIELDS_LIGHT) -> dict[str, dict]:
+    """Light metadata for every repo in `repos`. run_batched halves the batch on 502."""
     out: dict[str, dict] = {}
-    for batch, data in run_batched(gh, repos, _repo_query, batch_size):
+    for batch, data in run_batched(gh, repos, lambda b: _repo_query(b, fields), batch_size):
         d = data.get("data") or {}
         for i, repo in enumerate(batch):
             node = d.get(f"r{i}")
-            out[repo] = _flatten_repo(node) if node else {"repo": repo, "missing": True}
+            out[repo] = _flatten_repo(node) | {"deep": fields is REPO_FIELDS} if node else {"repo": repo, "missing": True}
     log.info("enriched %d repos (%d missing)", len(out), sum(1 for v in out.values() if v.get("missing")))
     return out
+
+
+DEEP_KEYS = ("watchers", "open_issues", "open_prs", "disk_kb", "languages", "topics", "latest_release", "latest_release_at", "funding")
+
+
+def enrich_repos_deep(gh: GitHub, repos: dict[str, dict], names: list[str], batch_size: int = 25) -> int:
+    """Merge the deep fields into existing light records. Returns count updated."""
+    todo = [n for n in names if n in repos and not repos[n].get("missing") and not repos[n].get("deep")]
+    if not todo:
+        return 0
+    n = 0
+    for batch, data in run_batched(gh, todo, lambda b: _repo_query(b, REPO_FIELDS_DEEP), batch_size):
+        d = data.get("data") or {}
+        for i, repo in enumerate(batch):
+            node = d.get(f"r{i}")
+            if not node:
+                continue
+            flat = _flatten_repo(node)
+            repos[repo].update({k: flat.get(k) for k in DEEP_KEYS})
+            repos[repo]["deep"] = True
+            n += 1
+    log.info("deep-enriched %d repos", n)
+    return n
 
 
 OWNER_FIELDS = """
@@ -140,4 +173,21 @@ def enrich_owners(gh: GitHub, logins: list[str], batch_size: int = 50) -> dict[s
             node = d.get(f"o{i}")
             out[login] = _flatten_owner(node) if node else {"login": login, "missing": True}
     log.info("enriched %d owners", len(out))
+    return out
+
+
+def public_members(gh: GitHub, orgs: list[str], existing: dict | None = None, max_pages: int = 1) -> dict[str, list[str]]:
+    """login -> public member logins (first page, 100). Only public members are
+    visible for orgs the token is not a member of. Users (not orgs) yield []."""
+    out = dict(existing or {})
+    todo = [o for o in orgs if o not in out]
+    for org in todo:
+        try:
+            members = [m.get("login") for m in gh.paginate(f"/orgs/{org}/public_members", max_pages=max_pages)]
+            out[org] = [m for m in members if m]
+        except Exception as e:  # noqa: BLE001 - 404 for users, 403 for odd orgs
+            log.debug("public_members(%s): %s", org, str(e)[:80])
+            out[org] = []
+    if todo:
+        log.info("public members fetched for %d orgs", len(todo))
     return out

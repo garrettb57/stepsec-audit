@@ -18,6 +18,8 @@ import os
 from typing import Callable
 
 from .gh import GitHub, pages_for
+from .prs import slim_pr
+from .vendor import is_internal_author
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +27,7 @@ SEARCH_CAP = 1000
 MAX_INDEXED_FILE_BYTES = 393_216  # code search indexes files < 384 KB
 
 STEP_SECURITY_ORG = "step-security"
-BOT_LOGINS = ("step-security-bot",)
+BOT_LOGINS = ("step-security-bot", "app/stepsecurity-app")
 SECURE_REPO_PR_TITLE = "[StepSecurity] Apply security best practices"
 
 
@@ -139,20 +141,7 @@ def discover_code(gh: GitHub, state_dir: str, actions: list[str] | None = None, 
 
 # ---------------------------------------------------------------------- PRs
 def _slim_issue_item(item: dict) -> dict:
-    repo_url = item.get("repository_url") or ""
-    repo = "/".join(repo_url.rsplit("/", 2)[-2:]) if repo_url else None
-    pr = item.get("pull_request") or {}
-    return {
-        "repo": repo,
-        "number": item.get("number"),
-        "title": item.get("title"),
-        "state": item.get("state"),
-        "author": (item.get("user") or {}).get("login"),
-        "created_at": item.get("created_at"),
-        "closed_at": item.get("closed_at"),
-        "merged_at": pr.get("merged_at"),
-        "html_url": item.get("html_url"),
-    }
+    return slim_pr(item)
 
 
 def issue_search_all(gh: GitHub, query: str, state_dir: str, start: dt.date, end: dt.date, smoke: bool = False) -> list[dict]:
@@ -192,10 +181,15 @@ def discover_prs(gh: GitHub, state_dir: str, start: dt.date = dt.date(2021, 1, 1
     if not smoke:
         queries.append(f'is:pr "{SECURE_REPO_PR_TITLE}" in:title')
     seen: dict[str, dict[int, dict]] = {}
+    dropped = 0
     for q in queries:
         for item in issue_search_all(gh, q, state_dir, start, end, smoke=smoke):
-            if item.get("repo") and item.get("number"):
-                seen.setdefault(item["repo"], {})[item["number"]] = item
+            if not item.get("repo") or not item.get("number"):
+                continue
+            if is_internal_author(item.get("author")):
+                dropped += 1
+                continue
+            seen.setdefault(item["repo"], {})[item["number"]] = item
     result = {repo: sorted(prs.values(), key=lambda p: p["created_at"] or "") for repo, prs in seen.items()}
-    log.info("PR discovery: %d repos, %d PRs", len(result), sum(len(v) for v in result.values()))
+    log.info("PR discovery: %d repos, %d PRs (%d internal-bot PRs dropped)", len(result), sum(len(v) for v in result.values()), dropped)
     return result

@@ -8,13 +8,13 @@ import os
 from collections import Counter
 
 from .domains import infer_account_domain
+from .prs import summarize_repo_prs
+from .score import path_class, score_account, sort_key
+from .vendor import Staff
 
 log = logging.getLogger(__name__)
 
 SEP = "; "
-
-# The vendor's own org and forks of its repos are not prospects.
-EXCLUDED_ACCOUNTS = {"step-security"}
 
 
 def _j(v) -> str:
@@ -42,23 +42,31 @@ REPO_COLUMNS = [
     "stars", "forks", "watchers", "open_issues", "open_prs", "is_fork", "parent", "is_archived", "is_template",
     "security_policy_enabled", "created_at", "pushed_at", "latest_release", "latest_release_at", "funding",
     "uses_harden_runner", "stepsecurity_actions", "other_stepsecurity_actions", "harden_runner_steps",
-    "harden_runner_versions", "egress_block", "egress_audit", "egress_unset", "allowed_endpoints_max",
+    "harden_runner_versions", "egress_block", "egress_audit", "egress_unset", "egress_expr", "allowed_endpoints_max",
     "disable_sudo_any", "disable_telemetry_any", "policy_store_any", "self_hosted_any", "pinned_sha_ratio",
-    "secure_repo_marker", "workflows_total", "workflows_with_stepsecurity", "harden_runner_paths",
+    "secure_repo_marker", "workflows_total", "workflows_with_stepsecurity", "harden_runner_paths", "path_class",
     "stepsecurity_prs", "stepsecurity_prs_merged", "stepsecurity_pr_first", "stepsecurity_pr_urls",
+    "pr_classes", "pr_requesters", "pr_human_authors", "pr_median_latency_h", "reverted", "reverted_prs", "app_installed",
     "adoption_date", "adopter_login", "adopter_name", "adopter_email", "top_committers", "recent_commits",
-    "distinct_humans_recent", "discovery_sources",
+    "distinct_humans_recent", "discovery_sources", "filtered_reason",
 ]
 
+INDIVIDUAL_COLUMNS = ["login", "name", "company", "website", "location", "repos", "repos_with_harden_runner", "stepsecurity_prs", "profile_url"]
+
 ACCOUNT_COLUMNS = [
-    "account", "account_type", "account_url", "account_name", "company_hint", "inferred_domain", "domain_source",
+    "account", "account_type", "rank", "account_url", "account_name", "company_hint", "inferred_domain", "domain_source",
     "website", "public_email", "location", "twitter", "description", "is_verified_org",
-    "public_repos", "followers", "user_orgs", "account_created_at", "tier", "tier_reason",
+    "public_repos", "followers", "user_orgs", "account_created_at",
+    "score", "depth_score", "provenance", "suppress_reason", "breadth", "rollout", "recency_factor", "legacy_tier",
+    "path_hygiene_repos", "path_build_repos", "path_release_repos", "disable_sudo_repos", "egress_expr_repos",
+    "org_standard", "inherited_repos", "live_repos", "latest_human_touch", "foundation",
     "repos_using_stepsecurity", "repos_with_harden_runner", "repos_bot_pr_only", "repo_list", "total_stars", "max_stars",
     "top_repo", "languages", "first_adoption", "latest_push", "egress_block_repos", "egress_audit_repos",
     "egress_unset_repos", "policy_store_repos", "self_hosted_repos", "disable_telemetry_repos", "avg_pinned_sha_ratio",
     "other_stepsecurity_actions", "workflows_total", "workflows_with_stepsecurity", "workflow_coverage_pct",
-    "stepsecurity_prs", "stepsecurity_prs_merged", "stepsecurity_pr_first", "contacts_count", "corporate_emails",
+    "stepsecurity_prs", "stepsecurity_prs_merged", "stepsecurity_pr_first", "app_installed", "secure_repo_self_prs",
+    "secure_repo_vendor_prs", "secure_repo_third_party_prs", "secure_repo_unknown_prs", "human_prs", "reverts",
+    "pr_median_latency_h", "contacts_count", "corporate_emails",
     "corporate_email_domains", "adopters", "top_contacts",
 ]
 
@@ -67,28 +75,47 @@ CONTACT_COLUMNS = [
     "accounts", "repos", "commits", "last_commit", "first_adoption", "profile_url",
 ]
 
+SUPPRESSED_COLUMNS = ["account", "suppress_reason", "evidence"]
+
 FILE_COLUMNS = ["repo", "path", "action", "ref", "pinned_sha", "version", "egress_policy", "allowed_endpoints_count",
                 "disable_sudo", "disable_telemetry", "policy_store", "self_hosted", "runs_on", "secure_repo_marker"]
 
 
-def build_repo_rows(repos: dict, wf: dict, prs: dict, contacts: dict, discovered: dict) -> list[dict]:
+def build_repo_rows(
+    repos: dict, wf: dict, prs: dict, contacts: dict, discovered: dict,
+    staff: Staff | None = None, public_members: dict | None = None,
+    owner_types: dict | None = None, filtered: dict | None = None, wf_sources: dict | None = None,
+) -> list[dict]:
+    """One row per repo. Denylisted owners and forks of their repos are dropped;
+    the count of dropped rows is returned on the list as `.denylisted`.
+    Rows filtered for fork/archived/mirror/template stay, with `filtered_reason`."""
+    staff = staff or Staff()
+    public_members = public_members or {}
+    owner_types = owner_types or {}
+    filtered = filtered or {}
+    wf_sources = wf_sources or {}
     rows = []
+    denylisted = 0
     for repo in sorted(set(repos) | set(wf) | set(prs)):
         r = dict(repos.get(repo) or {"repo": repo})
         if r.get("missing"):
             continue
-        if repo.split("/")[0].lower() in EXCLUDED_ACCOUNTS:
-            continue
-        if r.get("is_fork") and (r.get("parent") or "").split("/")[0].lower() in EXCLUDED_ACCOUNTS:
+        r["filtered_reason"] = filtered.get(repo)
+        r["owner_type"] = r.get("owner_type") or owner_types.get(repo) or ((discovered.get(repo) or [{}])[0].get("owner_type"))
+        if staff.is_denylisted(repo.split("/")[0]) or (r.get("is_fork") and staff.is_denylisted((r.get("parent") or "").split("/")[0])):
+            denylisted += 1
             continue
         r.update(wf.get(repo) or {})
+        r["path_class"] = path_class(r.get("harden_runner_paths"))
         pr_list = prs.get(repo) or []
         merged = [p for p in pr_list if p.get("merged_at")]
+        owner_login = r.get("owner") or repo.split("/")[0]
+        c = contacts.get(repo) or {}
+        committers = {t.get("login") for t in c.get("top_committers", []) if t.get("login")}
+        r.update(summarize_repo_prs(pr_list, owner_login, staff, set(public_members.get(owner_login) or []), committers))
         r["stepsecurity_prs"] = len(pr_list)
-        r["stepsecurity_prs_merged"] = len(merged)
         r["stepsecurity_pr_first"] = min((p["created_at"] for p in pr_list if p.get("created_at")), default=None)
         r["stepsecurity_pr_urls"] = [p["html_url"] for p in pr_list[:3]]
-        c = contacts.get(repo) or {}
         adopters = c.get("adopters") or []
         dates = [a["date"] for a in adopters if a.get("date")]
         if merged:
@@ -105,12 +132,32 @@ def build_repo_rows(repos: dict, wf: dict, prs: dict, contacts: dict, discovered
             src.append("code_search")
         if pr_list:
             src.append("bot_pr")
+        if wf_sources.get(repo) == "tree_scan":
+            src.append("tree_scan")
         r["discovery_sources"] = src
         if not r.get("owner"):
             r["owner"] = repo.split("/")[0]
         rows.append(r)
     rows.sort(key=lambda x: -(x.get("stars") or 0))
+    rows = RepoRows(rows)
+    rows.denylisted = denylisted
     return rows
+
+
+class RepoRows(list):
+    denylisted = 0
+
+
+def _pr_count(reps: list[dict], cls: str) -> int:
+    return sum((r.get("pr_class_counts") or {}).get(cls, 0) for r in reps)
+
+
+def _median(vals: list[float]):
+    if not vals:
+        return None
+    vals = sorted(vals)
+    n = len(vals)
+    return round(vals[n // 2] if n % 2 else (vals[n // 2 - 1] + vals[n // 2]) / 2, 2)
 
 
 def _tier(acct: dict, owner: dict) -> tuple[str, str]:
@@ -131,11 +178,13 @@ def _tier(acct: dict, owner: dict) -> tuple[str, str]:
     return "adopter_audit", "harden-runner in audit-only / default mode"
 
 
-def build_account_rows(repo_rows: list[dict], owners: dict, people_by_acct: dict) -> list[dict]:
-    """One row per owner. Forks are listed in repos.csv but do not count as adoption."""
+def build_account_rows(repo_rows: list[dict], owners: dict, people_by_acct: dict, scores: dict | None = None) -> list[dict]:
+    """One row per owner. Filtered repos (forks, archived, mirrors, templates)
+    are listed in repos.csv but do not count toward adoption."""
+    scores = scores or {}
     by_acct: dict[str, list[dict]] = {}
     for r in repo_rows:
-        if r.get("is_fork"):
+        if r.get("is_fork") or r.get("filtered_reason"):
             continue
         by_acct.setdefault(r["owner"], []).append(r)
     rows = []
@@ -155,7 +204,8 @@ def build_account_rows(repo_rows: list[dict], owners: dict, people_by_acct: dict
         other_actions = sorted({a for r in reps for a in (r.get("other_stepsecurity_actions") or [])})
         a = {
             "account": acct,
-            "account_type": o.get("type") or (reps[0].get("owner_type")),
+            "account_type": o.get("type") or next((r.get("owner_type") for r in reps if r.get("owner_type")), None),
+            "rank": (scores.get(acct) or {}).get("rank"),
             "account_url": o.get("url") or f"https://github.com/{acct}",
             "account_name": o.get("name"),
             "company_hint": o.get("company") if o.get("type") == "User" else o.get("name"),
@@ -187,6 +237,18 @@ def build_account_rows(repo_rows: list[dict], owners: dict, people_by_acct: dict
             "policy_store_repos": sum(1 for r in hr if r.get("policy_store_any")),
             "self_hosted_repos": sum(1 for r in hr if r.get("self_hosted_any")),
             "disable_telemetry_repos": sum(1 for r in hr if r.get("disable_telemetry_any")),
+            "disable_sudo_repos": sum(1 for r in hr if r.get("disable_sudo_any")),
+            "egress_expr_repos": sum(1 for r in hr if r.get("egress_expr")),
+            "allowed_endpoints_max": max([r.get("allowed_endpoints_max") or 0 for r in hr] or [0]),
+            "path_hygiene_repos": sum(1 for r in hr if "hygiene" in (r.get("path_class") or [])),
+            "path_build_repos": sum(1 for r in hr if "build" in (r.get("path_class") or [])),
+            "path_release_repos": sum(1 for r in hr if "release" in (r.get("path_class") or [])),
+            "adoption_dates": [r.get("adoption_date") for r in hr if r.get("adoption_date")],
+            "org_standard": None,
+            "inherited_repos": None,
+            "live_repos": None,
+            "latest_human_touch": None,
+            "foundation": None,
             "avg_pinned_sha_ratio": round(sum(pinned) / len(pinned), 2) if pinned else None,
             "other_stepsecurity_actions": other_actions,
             "workflows_total": wf_total,
@@ -195,6 +257,14 @@ def build_account_rows(repo_rows: list[dict], owners: dict, people_by_acct: dict
             "stepsecurity_prs": sum(r.get("stepsecurity_prs") or 0 for r in reps),
             "stepsecurity_prs_merged": sum(r.get("stepsecurity_prs_merged") or 0 for r in reps),
             "stepsecurity_pr_first": min((r["stepsecurity_pr_first"] for r in reps if r.get("stepsecurity_pr_first")), default=None),
+            "app_installed": any(r.get("app_installed") for r in reps),
+            "secure_repo_self_prs": _pr_count(reps, "secure_repo_self"),
+            "secure_repo_vendor_prs": _pr_count(reps, "secure_repo_vendor"),
+            "secure_repo_third_party_prs": _pr_count(reps, "secure_repo_third_party"),
+            "secure_repo_unknown_prs": _pr_count(reps, "secure_repo_unknown"),
+            "human_prs": _pr_count(reps, "human_pr"),
+            "reverts": _pr_count(reps, "revert"),
+            "pr_median_latency_h": _median([r["pr_median_latency_h"] for r in reps if r.get("pr_median_latency_h") is not None]),
             "contacts_count": len(ppl["contacts"]),
             "corporate_emails": corp_emails,
             "corporate_email_domains": sorted({e.split("@")[1] for e in corp_emails}),
@@ -204,11 +274,48 @@ def build_account_rows(repo_rows: list[dict], owners: dict, people_by_acct: dict
                 for p in sorted(ppl["contacts"], key=lambda p: (-len(p["roles"]), -p["commits"]))[:5]
             ],
         }
-        a["tier"], a["tier_reason"] = _tier(a, o)
+        a["legacy_tier"] = _tier(a, o)[0]
+        score_account(a)
         rows.append(a)
-    tier_order = {"likely_customer": 0, "power_user": 1, "adopter_block": 2, "adopter_audit": 3, "other_actions_only": 4, "bot_pr_only": 5, "individual": 6}
-    rows.sort(key=lambda a: (tier_order.get(a["tier"], 9), -(a["total_stars"] or 0)))
+    rows.sort(key=sort_key)
+    for i, a in enumerate(rows, start=1):
+        a["rank"] = i
     return rows
+
+
+def build_suppressed_rows(acct_rows: list[dict]) -> list[dict]:
+    out = []
+    for a in acct_rows:
+        for reason in a.get("suppress_reason") or []:
+            if reason == "app_installed":
+                ev = f"stepsecurity-app[bot] PRs in {sum(1 for r in a.get('repo_list') or [])} repos; e.g. {a.get('top_repo')}"
+            elif reason == "policy_store":
+                ev = f"policy store / api-key in {a.get('policy_store_repos')} repos"
+            elif reason == "all_reverted":
+                ev = f"{a.get('reverts')} revert PRs, no harden-runner live"
+            elif reason == "individual":
+                ev = "user-owned account"
+            else:
+                ev = ""
+            out.append({"account": a["account"], "suppress_reason": reason, "evidence": ev})
+    return out
+
+
+def build_individual_rows(repos: list[str], owners: dict, wf: dict, prs: dict) -> list[dict]:
+    """User-owned accounts: one row per login, unenriched beyond the owner profile."""
+    by_login: dict[str, dict] = {}
+    for repo in repos:
+        login = repo.split("/")[0]
+        o = owners.get(login) or {}
+        row = by_login.setdefault(login, {
+            "login": login, "name": o.get("name"), "company": o.get("company"), "website": o.get("websiteUrl"),
+            "location": o.get("location"), "repos": [], "repos_with_harden_runner": 0, "stepsecurity_prs": 0,
+            "profile_url": f"https://github.com/{login}",
+        })
+        row["repos"].append(repo)
+        row["repos_with_harden_runner"] += 1 if (wf.get(repo) or {}).get("uses_harden_runner") else 0
+        row["stepsecurity_prs"] += len(prs.get(repo) or [])
+    return sorted(by_login.values(), key=lambda r: (-r["repos_with_harden_runner"], -len(r["repos"]), r["login"].lower()))
 
 
 def build_contact_rows(people: list[dict]) -> list[dict]:
@@ -230,7 +337,7 @@ def build_file_rows(wf_raw: dict) -> list[dict]:
 
 
 def write_summary(path: str, accounts: list[dict], repos: list[dict], people: list[dict], meta: dict) -> None:
-    tiers = Counter(a["tier"] for a in accounts)
+    tiers = Counter(a.get("legacy_tier") for a in accounts)
     types = Counter(a["account_type"] for a in accounts)
     with_domain = sum(1 for a in accounts if a["inferred_domain"])
     with_corp_email = sum(1 for a in accounts if a["corporate_emails"])
@@ -238,19 +345,50 @@ def write_summary(path: str, accounts: list[dict], repos: list[dict], people: li
         f"# Crawl summary ({dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')})",
         "",
         f"- Repos discovered: **{meta.get('discovered_repos', 0)}** (code search) + **{meta.get('pr_repos', 0)}** (bot PRs); exported **{len(repos)}**",
+        f"- Denylist removed: {meta.get('denylist_repos_removed', 0)} repos, {meta.get('denylist_prs_removed', 0)} PRs; staff logins known: {meta.get('staff_logins', 0)}",
         f"- Accounts: **{len(accounts)}** ({', '.join(f'{k}: {v}' for k, v in types.most_common())})",
         f"- Accounts with an inferred domain: {with_domain} ({100 * with_domain // max(1, len(accounts))}%)",
         f"- Accounts with at least one corporate committer email: {with_corp_email} ({100 * with_corp_email // max(1, len(accounts))}%)",
         f"- People rows: {len(people)}; with any email: {sum(1 for p in people if p['emails'])}; with corporate email: {sum(1 for p in people if p['corporate_emails'])}",
         "",
-        "## Tiers",
+        "## Funnel",
+        "",
+        "| stage | count |",
+        "|---|---|",
+    ] + [f"| {k} | {v} |" for k, v in (meta.get("funnel") or {}).items() if not isinstance(v, dict)] + [
+        "",
+        "Filtered by reason: " + ", ".join(f"{k}={v}" for k, v in ((meta.get("funnel") or {}).get("filtered_reasons") or {}).items()),
+        "",
+        "## Provenance",
+        "",
+        "| provenance | accounts |",
+        "|---|---|",
+    ] + [f"| {t} | {n} |" for t, n in Counter(a.get("provenance") for a in accounts).most_common()] + [
+        "",
+        f"Suppressed: {dict(Counter(r for a in accounts for r in (a.get('suppress_reason') or [])))}; "
+        f"score > 0: {sum(1 for a in accounts if (a.get('score') or 0) > 0)}; "
+        f"rollout accounts: {sum(1 for a in accounts if a.get('rollout'))}",
+        "",
+        "## Tiers (legacy)",
         "",
         "| tier | accounts |",
         "|---|---|",
     ] + [f"| {t} | {n} |" for t, n in tiers.most_common()] + [
         "",
+        "## Phases (cumulative across runs)",
+        "",
+        "| phase | wall (min) | last run (min) | requests by bucket | rows |",
+        "|---|---|---|---|---|",
+    ] + [
+        f"| {name} | {p.get('wall_s', 0) / 60:.1f} | {p.get('last_run_wall_s', 0) / 60:.1f} | {', '.join(f'{b}={n}' for b, n in (p.get('requests') or {}).items()) or '-'} | {p.get('rows', 0)} |"
+        for name, p in (meta.get("phases") or {}).items()
+    ] + [
+        "",
+        f"Requests this run by bucket: {meta.get('requests_by_bucket_this_run')}; rate limits seen: {meta.get('rate_limits')}",
+        f"Remaining work: {meta.get('remaining_work') or 'none'}",
+        "",
         "## Phase state",
         "",
-    ] + [f"- {k}: {v}" for k, v in meta.items()]
+    ] + [f"- {k}: {v}" for k, v in meta.items() if k not in ("phases", "funnel")]
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")

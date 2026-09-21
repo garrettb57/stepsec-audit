@@ -11,8 +11,14 @@ from collections import Counter, defaultdict
 
 from .domains import classify_email, is_bot
 from .gh import GitHub, GitHubError, gql_str, run_batched
+from .vendor import Staff
 
 log = logging.getLogger(__name__)
+
+
+def _excluded(staff: Staff, login, name, email) -> bool:
+    """Bots and StepSecurity staff never become contacts."""
+    return is_bot(login, name, email) or staff.is_staff(login, email)
 
 USER_FIELDS = "login name company email websiteUrl location twitterUsername"
 COMMIT_NODE = f"nodes {{ oid authoredDate author {{ name email user {{ {USER_FIELDS} }} }} }}"
@@ -79,8 +85,14 @@ def _oldest_commit(gh: GitHub, repo: str, path: str, cursor: str | None, max_pag
     return last
 
 
-def collect_contacts(gh: GitHub, items: list[dict], batch_size: int = 10, walk_history: bool = True) -> dict[str, dict]:
-    """items: [{repo, hr_paths, pr_numbers}] -> repo -> contact summary."""
+def collect_contacts(gh: GitHub, items: list[dict], batch_size: int = 10, walk_history: bool = True, staff: Staff | None = None) -> dict[str, dict]:
+    """items: [{repo, hr_paths, pr_numbers}] -> repo -> contact summary.
+
+    Staff are excluded from committers and mergers. A staff-authored adoption
+    commit is kept but flagged `vendor_initiated`, so export can credit the
+    org-side merger instead.
+    """
+    staff = staff or Staff()
     out: dict[str, dict] = {}
     for batch, data in run_batched(gh, items, _contacts_query, batch_size):
         d = data.get("data") or {}
@@ -98,7 +110,7 @@ def collect_contacts(gh: GitHub, items: list[dict], batch_size: int = 10, walk_h
             for c in recent:
                 a = c.get("author") or {}
                 user = a.get("user") or {}
-                if is_bot(user.get("login"), a.get("name"), a.get("email")):
+                if _excluded(staff, user.get("login"), a.get("name"), a.get("email")):
                     continue
                 key = _person_key(a)
                 if not key:
@@ -131,9 +143,10 @@ def collect_contacts(gh: GitHub, items: list[dict], batch_size: int = 10, walk_h
                         oldest = deeper
                 a = oldest.get("author") or {}
                 user = a.get("user") or {}
+                vendor_initiated = staff.is_staff(user.get("login"), a.get("email"))
                 if is_bot(user.get("login"), a.get("name"), a.get("email")):
                     # bot-authored (e.g. secure-repo PR); fall back to the next human in the file history
-                    humans = [n for n in reversed(nodes) if not is_bot(((n.get("author") or {}).get("user") or {}).get("login"), (n.get("author") or {}).get("name"), (n.get("author") or {}).get("email"))]
+                    humans = [n for n in reversed(nodes) if not _excluded(staff, ((n.get("author") or {}).get("user") or {}).get("login"), (n.get("author") or {}).get("name"), (n.get("author") or {}).get("email"))]
                     if humans:
                         a = humans[0].get("author") or {}
                         user = a.get("user") or {}
@@ -146,6 +159,8 @@ def collect_contacts(gh: GitHub, items: list[dict], batch_size: int = 10, walk_h
                         "company": user.get("company"),
                         "date": oldest.get("authoredDate"),
                         "file_commits": hist.get("totalCount"),
+                        "vendor_initiated": vendor_initiated,
+                        "is_staff": vendor_initiated,
                     }
                 )
 
@@ -154,6 +169,8 @@ def collect_contacts(gh: GitHub, items: list[dict], batch_size: int = 10, walk_h
                 pr = node.get(f"pr{j}")
                 if pr and pr.get("mergedBy"):
                     mb = pr["mergedBy"]
+                    if _excluded(staff, mb.get("login"), mb.get("name"), mb.get("email")):
+                        continue
                     mergers.append({"pr": pr.get("number"), "login": mb.get("login"), "name": mb.get("name"), "email": mb.get("email"), "company": mb.get("company"), "merged_at": pr.get("mergedAt")})
 
             top = []
@@ -171,8 +188,9 @@ def collect_contacts(gh: GitHub, items: list[dict], batch_size: int = 10, walk_h
     return out
 
 
-def aggregate_people(contacts: dict[str, dict], repo_owner: dict[str, str]) -> list[dict]:
-    """Roll per-repo contact summaries up to one row per person."""
+def aggregate_people(contacts: dict[str, dict], repo_owner: dict[str, str], staff: Staff | None = None) -> list[dict]:
+    """Roll per-repo contact summaries up to one row per person. Staff are dropped."""
+    staff = staff or Staff()
     people: dict[str, dict] = {}
 
     def get(login, name, email):
@@ -203,7 +221,15 @@ def aggregate_people(contacts: dict[str, dict], repo_owner: dict[str, str]) -> l
             p["roles"].add("top_committer" if rank <= 3 else "committer")
             if tc.get("login") and tc["login"].lower() == acct.lower():
                 p["roles"].add("repo_owner")
+        if any(ad.get("vendor_initiated") for ad in c.get("adopters", [])):
+            # staff introduced harden-runner; the org-side person is whoever merged it
+            for m in c.get("stepsecurity_pr_mergers", []):
+                p = get(m.get("login"), m.get("name"), m.get("email"))
+                if p:
+                    p["roles"].add("org_side_contact")
         for ad in c.get("adopters", []):
+            if ad.get("is_staff") or staff.is_staff(ad.get("login"), ad.get("email")):
+                continue
             p = get(ad.get("login"), ad.get("name"), ad.get("email"))
             if not p:
                 continue
@@ -215,6 +241,8 @@ def aggregate_people(contacts: dict[str, dict], repo_owner: dict[str, str]) -> l
             p["roles"].add("harden_runner_adopter")
             p["adoptions"].append({"repo": repo, "date": ad.get("date")})
         for m in c.get("stepsecurity_pr_mergers", []):
+            if staff.is_staff(m.get("login"), m.get("email")):
+                continue
             p = get(m.get("login"), m.get("name"), m.get("email"))
             if not p:
                 continue
@@ -227,6 +255,8 @@ def aggregate_people(contacts: dict[str, dict], repo_owner: dict[str, str]) -> l
 
     rows = []
     for p in people.values():
+        if staff.is_staff(p.get("login")) or any(staff.is_staff(None, e) for e in p["emails"]):
+            continue
         emails = sorted(p["emails"])
         corp = [e for e in emails if classify_email(e) == "corporate"]
         rows.append(

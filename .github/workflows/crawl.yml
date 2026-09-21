@@ -1,12 +1,13 @@
 name: crawl
 
 # Manual runs only. Each run stops at time_budget_min, commits data/ and state/,
-# and can be re-run to resume. See README.md.
+# and dispatches itself again (up to max_chain times) while work remains.
+# See README.md.
 on:
   workflow_dispatch:
     inputs:
       phase:
-        description: "all | discover | workflows | enrich | contacts | export"
+        description: "all | discover | owners | classify | repos | workflows | score | contacts | export"
         default: "all"
       limit:
         description: "Cap candidate repos (smoke test). Blank = no cap."
@@ -15,14 +16,21 @@ on:
         description: "Comma list of step-security action names to search. Blank = every public repo in the step-security org."
         default: ""
       time_budget_min:
-        description: "Stop cleanly after this many minutes and commit state; re-run to resume."
+        description: "Stop cleanly after this many minutes and commit state; the run re-dispatches itself if work remains."
         default: "330"
       extra_args:
-        description: "Extra CLI flags, e.g. --skip-contacts --rediscover"
+        description: "Extra CLI flags, e.g. --smoke --limit 40, --skip-contacts, --contacts-top-accounts 200"
         default: ""
+      chain:
+        description: "Auto-chain depth of this run (set by the previous run; leave 0)."
+        default: "0"
+      max_chain:
+        description: "Stop auto-chaining after this many follow-up runs."
+        default: "4"
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: crawl
@@ -48,8 +56,9 @@ jobs:
 
       - name: Crawl
         env:
-          # A classic or fine-grained PAT (public-repo read only) in CRAWLER_TOKEN raises
-          # the REST limit from 1,000 to 5,000 req/h. GITHUB_TOKEN works without it.
+          # CRAWLER_TOKEN is required: a fine-grained PAT (public repositories, read-only)
+          # with the 5,000 req/h REST and GraphQL budgets. The crawler fails fast on the
+          # 1,000 req/h GITHUB_TOKEN budget.
           GITHUB_TOKEN: ${{ secrets.CRAWLER_TOKEN || secrets.GITHUB_TOKEN }}
           PYTHONUNBUFFERED: "1"
         run: |
@@ -57,7 +66,7 @@ jobs:
           if [ -n "${{ inputs.limit }}" ]; then ARGS="$ARGS --limit ${{ inputs.limit }}"; fi
           if [ -n "${{ inputs.actions }}" ]; then ARGS="$ARGS --actions ${{ inputs.actions }}"; fi
           ARGS="$ARGS ${{ inputs.extra_args }}"
-          echo "running: python -m crawler.main $ARGS"
+          echo "running: python -m crawler.main $ARGS (chain ${{ inputs.chain }}/${{ inputs.max_chain }})"
           python -m crawler.main $ARGS
 
       - name: Commit data and state
@@ -67,7 +76,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A data state
           if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
-          git commit -m "crawl: update data and state ($(date -u +%Y-%m-%dT%H:%MZ))"
+          git commit -m "crawl: update data and state ($(date -u +%Y-%m-%dT%H:%MZ), chain ${{ inputs.chain }})"
           for i in 1 2 3 4 5; do
             git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
             sleep $((i * 5))
@@ -78,5 +87,27 @@ jobs:
         if: always()
         with:
           name: stepsec-csv
-          path: data/
+          path: |
+            data/
+            data_smoke/
           if-no-files-found: ignore
+
+      - name: Dispatch next run if work remains
+        if: success()
+        env:
+          # GITHUB_TOKEN may dispatch workflow_dispatch events; the concurrency group
+          # queues the new run until this one finishes and its commit has landed.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ ! -f .crawl_remaining ]; then echo "no work remaining"; exit 0; fi
+          CHAIN=${{ inputs.chain }}; MAX=${{ inputs.max_chain }}
+          if [ "$CHAIN" -ge "$MAX" ]; then echo "max_chain ($MAX) reached; not dispatching"; exit 0; fi
+          echo "remaining: $(cat .crawl_remaining)"
+          NEXT=$((CHAIN + 1))
+          curl -sS -f -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" -H "Content-Type: application/json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/crawl.yml/dispatches" \
+            -d "$(jq -n --arg ref "$GITHUB_REF_NAME" --arg phase "${{ inputs.phase }}" --arg limit "${{ inputs.limit }}" \
+                    --arg actions "${{ inputs.actions }}" --arg tbm "${{ inputs.time_budget_min }}" --arg extra "${{ inputs.extra_args }}" \
+                    --arg chain "$NEXT" --arg max "$MAX" \
+                    '{ref: $ref, inputs: {phase: $phase, limit: $limit, actions: $actions, time_budget_min: $tbm, extra_args: $extra, chain: $chain, max_chain: $max}}')"
+          echo "dispatched chain $NEXT"
