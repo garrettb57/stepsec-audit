@@ -72,7 +72,7 @@ def _flatten_repo(node: dict) -> dict:
     }
 
 
-def enrich_repos(gh: GitHub, repos: list[str], batch_size: int = 50) -> dict[str, dict]:
+def enrich_repos(gh: GitHub, repos: list[str], batch_size: int = 25) -> dict[str, dict]:
     out: dict[str, dict] = {}
     for batch, data in run_batched(gh, repos, _repo_query, batch_size):
         d = data.get("data") or {}
