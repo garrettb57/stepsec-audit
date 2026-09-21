@@ -223,6 +223,7 @@ def run(args) -> int:
         log.info("migration: dropped %d internal-bot PRs", ctx.dropped_internal)
         st.save("prs", ctx.prs)
         meta["internal_prs_dropped"] = meta.get("internal_prs_dropped", 0) + ctx.dropped_internal
+        st.save("meta", meta)  # persist even if the run stops before the first phase completes
     n = migrate_workflows(ctx.wf_raw)
     if n:
         log.info("migration: %d PR-only workflow records reset for tree scan", n)
