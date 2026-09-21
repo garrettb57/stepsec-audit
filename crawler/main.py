@@ -13,7 +13,7 @@ import sys
 import time
 
 from . import contacts as contacts_mod
-from . import discover, enrich, export, vendor, workflows
+from . import discover, enrich, export, prs as prs_mod, vendor, workflows
 from .gh import GitHub
 
 log = logging.getLogger("crawler")
@@ -79,12 +79,16 @@ def run(args) -> int:
     meta = st.load("meta", {})
 
     discovered = st.load("discovered", {})
-    prs = st.load("prs", {})
+    prs, dropped_internal, sandbox_owners = prs_mod.migrate_prs(st.load("prs", {}))
+    if dropped_internal:
+        log.info("migration: dropped %d internal-bot PRs", dropped_internal)
+        st.save("prs", prs)
+    public_members = st.load("org_members", {})
     wf_raw = st.load("workflows_raw", {})
     repos = st.load("repos", {})
     owners = st.load("owners", {})
     contacts = st.load("contacts", {})
-    staff = vendor.build_staff(gh, prs, st.load("staff", None))
+    staff = vendor.build_staff(gh, prs, st.load("staff", None), sandbox_owners)
     st.save("staff", staff.to_json())
     meta["staff_logins"] = len(staff.logins)
 
@@ -183,6 +187,7 @@ def run(args) -> int:
             contacts,
             discovered,
             staff,
+            public_members,
         )
         meta["denylist_repos_removed"] = repo_rows.denylisted
         meta["denylist_prs_removed"] = sum(len(v) for r, v in prs.items() if staff.is_denylisted(r.split("/")[0]))

@@ -141,3 +141,20 @@ def enrich_owners(gh: GitHub, logins: list[str], batch_size: int = 50) -> dict[s
             out[login] = _flatten_owner(node) if node else {"login": login, "missing": True}
     log.info("enriched %d owners", len(out))
     return out
+
+
+def public_members(gh: GitHub, orgs: list[str], existing: dict | None = None, max_pages: int = 1) -> dict[str, list[str]]:
+    """login -> public member logins (first page, 100). Only public members are
+    visible for orgs the token is not a member of. Users (not orgs) yield []."""
+    out = dict(existing or {})
+    todo = [o for o in orgs if o not in out]
+    for org in todo:
+        try:
+            members = [m.get("login") for m in gh.paginate(f"/orgs/{org}/public_members", max_pages=max_pages)]
+            out[org] = [m for m in members if m]
+        except Exception as e:  # noqa: BLE001 - 404 for users, 403 for odd orgs
+            log.debug("public_members(%s): %s", org, str(e)[:80])
+            out[org] = []
+    if todo:
+        log.info("public members fetched for %d orgs", len(todo))
+    return out

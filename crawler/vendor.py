@@ -111,9 +111,12 @@ def _cross_owner_actors(prs: dict[str, list[dict]]) -> dict[str, set[str]]:
     return owners
 
 
-def build_staff(gh: GitHub | None, prs: dict[str, list[dict]], existing: dict | None = None) -> Staff:
-    """Assemble the staff list. `gh` may be None for offline tests."""
+def build_staff(gh: GitHub | None, prs: dict[str, list[dict]], existing: dict | None = None, sandbox_owners: set[str] | None = None) -> Staff:
+    """Assemble the staff list. Recomputed from `prs` on every run (cheap);
+    only the public-member lookup is cached via `existing`. `gh` may be None
+    for offline tests."""
     staff = Staff(existing)
+    staff.sandbox_owners |= {o.lower() for o in (sandbox_owners or set())}
     # owners of the hard-coded personal sandboxes are staff too
     for l in ("varunsh-coder", "ashishkurmi", "kurmiashish", "sailikhith-stepsecurity", "raj-stepsecurity", "vamshi-stepsecurity"):
         staff.add(l, "sandbox_owner")
@@ -138,8 +141,8 @@ def build_staff(gh: GitHub | None, prs: dict[str, list[dict]], existing: dict | 
             for m in members:
                 staff.add(m.get("login"), "public_member")
             log.info("staff: %d public members of %s", len(members), VENDOR_ORG)
+            staff.built_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         except GitHubError as e:
             log.warning("could not list %s public members: %s", VENDOR_ORG, str(e)[:120])
-        staff.built_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     log.info("staff: %d logins, %d sandbox owners", len(staff.logins), len(staff.sandbox_owners))
     return staff

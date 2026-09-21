@@ -8,6 +8,7 @@ import os
 from collections import Counter
 
 from .domains import infer_account_domain
+from .prs import summarize_repo_prs
 from .vendor import Staff
 
 log = logging.getLogger(__name__)
@@ -44,6 +45,7 @@ REPO_COLUMNS = [
     "disable_sudo_any", "disable_telemetry_any", "policy_store_any", "self_hosted_any", "pinned_sha_ratio",
     "secure_repo_marker", "workflows_total", "workflows_with_stepsecurity", "harden_runner_paths",
     "stepsecurity_prs", "stepsecurity_prs_merged", "stepsecurity_pr_first", "stepsecurity_pr_urls",
+    "pr_classes", "pr_requesters", "pr_human_authors", "pr_median_latency_h", "reverted", "reverted_prs", "app_installed",
     "adoption_date", "adopter_login", "adopter_name", "adopter_email", "top_committers", "recent_commits",
     "distinct_humans_recent", "discovery_sources",
 ]
@@ -56,7 +58,9 @@ ACCOUNT_COLUMNS = [
     "top_repo", "languages", "first_adoption", "latest_push", "egress_block_repos", "egress_audit_repos",
     "egress_unset_repos", "policy_store_repos", "self_hosted_repos", "disable_telemetry_repos", "avg_pinned_sha_ratio",
     "other_stepsecurity_actions", "workflows_total", "workflows_with_stepsecurity", "workflow_coverage_pct",
-    "stepsecurity_prs", "stepsecurity_prs_merged", "stepsecurity_pr_first", "contacts_count", "corporate_emails",
+    "stepsecurity_prs", "stepsecurity_prs_merged", "stepsecurity_pr_first", "app_installed", "secure_repo_self_prs",
+    "secure_repo_vendor_prs", "secure_repo_third_party_prs", "secure_repo_unknown_prs", "human_prs", "reverts",
+    "pr_median_latency_h", "contacts_count", "corporate_emails",
     "corporate_email_domains", "adopters", "top_contacts",
 ]
 
@@ -69,10 +73,11 @@ FILE_COLUMNS = ["repo", "path", "action", "ref", "pinned_sha", "version", "egres
                 "disable_sudo", "disable_telemetry", "policy_store", "self_hosted", "runs_on", "secure_repo_marker"]
 
 
-def build_repo_rows(repos: dict, wf: dict, prs: dict, contacts: dict, discovered: dict, staff: Staff | None = None) -> list[dict]:
+def build_repo_rows(repos: dict, wf: dict, prs: dict, contacts: dict, discovered: dict, staff: Staff | None = None, public_members: dict | None = None) -> list[dict]:
     """One row per repo. Denylisted owners and forks of their repos are dropped;
     the count of dropped rows is returned on the list as `.denylisted`."""
     staff = staff or Staff()
+    public_members = public_members or {}
     rows = []
     denylisted = 0
     for repo in sorted(set(repos) | set(wf) | set(prs)):
@@ -85,11 +90,13 @@ def build_repo_rows(repos: dict, wf: dict, prs: dict, contacts: dict, discovered
         r.update(wf.get(repo) or {})
         pr_list = prs.get(repo) or []
         merged = [p for p in pr_list if p.get("merged_at")]
+        owner_login = r.get("owner") or repo.split("/")[0]
+        c = contacts.get(repo) or {}
+        committers = {t.get("login") for t in c.get("top_committers", []) if t.get("login")}
+        r.update(summarize_repo_prs(pr_list, owner_login, staff, set(public_members.get(owner_login) or []), committers))
         r["stepsecurity_prs"] = len(pr_list)
-        r["stepsecurity_prs_merged"] = len(merged)
         r["stepsecurity_pr_first"] = min((p["created_at"] for p in pr_list if p.get("created_at")), default=None)
         r["stepsecurity_pr_urls"] = [p["html_url"] for p in pr_list[:3]]
-        c = contacts.get(repo) or {}
         adopters = c.get("adopters") or []
         dates = [a["date"] for a in adopters if a.get("date")]
         if merged:
@@ -118,6 +125,18 @@ def build_repo_rows(repos: dict, wf: dict, prs: dict, contacts: dict, discovered
 
 class RepoRows(list):
     denylisted = 0
+
+
+def _pr_count(reps: list[dict], cls: str) -> int:
+    return sum((r.get("pr_class_counts") or {}).get(cls, 0) for r in reps)
+
+
+def _median(vals: list[float]):
+    if not vals:
+        return None
+    vals = sorted(vals)
+    n = len(vals)
+    return round(vals[n // 2] if n % 2 else (vals[n // 2 - 1] + vals[n // 2]) / 2, 2)
 
 
 def _tier(acct: dict, owner: dict) -> tuple[str, str]:
@@ -202,6 +221,14 @@ def build_account_rows(repo_rows: list[dict], owners: dict, people_by_acct: dict
             "stepsecurity_prs": sum(r.get("stepsecurity_prs") or 0 for r in reps),
             "stepsecurity_prs_merged": sum(r.get("stepsecurity_prs_merged") or 0 for r in reps),
             "stepsecurity_pr_first": min((r["stepsecurity_pr_first"] for r in reps if r.get("stepsecurity_pr_first")), default=None),
+            "app_installed": any(r.get("app_installed") for r in reps),
+            "secure_repo_self_prs": _pr_count(reps, "secure_repo_self"),
+            "secure_repo_vendor_prs": _pr_count(reps, "secure_repo_vendor"),
+            "secure_repo_third_party_prs": _pr_count(reps, "secure_repo_third_party"),
+            "secure_repo_unknown_prs": _pr_count(reps, "secure_repo_unknown"),
+            "human_prs": _pr_count(reps, "human_pr"),
+            "reverts": _pr_count(reps, "revert"),
+            "pr_median_latency_h": _median([r["pr_median_latency_h"] for r in reps if r.get("pr_median_latency_h") is not None]),
             "contacts_count": len(ppl["contacts"]),
             "corporate_emails": corp_emails,
             "corporate_email_domains": sorted({e.split("@")[1] for e in corp_emails}),
