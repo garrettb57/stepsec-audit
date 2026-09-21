@@ -8,13 +8,11 @@ import os
 from collections import Counter
 
 from .domains import infer_account_domain
+from .vendor import Staff
 
 log = logging.getLogger(__name__)
 
 SEP = "; "
-
-# The vendor's own org and forks of its repos are not prospects.
-EXCLUDED_ACCOUNTS = {"step-security"}
 
 
 def _j(v) -> str:
@@ -71,15 +69,18 @@ FILE_COLUMNS = ["repo", "path", "action", "ref", "pinned_sha", "version", "egres
                 "disable_sudo", "disable_telemetry", "policy_store", "self_hosted", "runs_on", "secure_repo_marker"]
 
 
-def build_repo_rows(repos: dict, wf: dict, prs: dict, contacts: dict, discovered: dict) -> list[dict]:
+def build_repo_rows(repos: dict, wf: dict, prs: dict, contacts: dict, discovered: dict, staff: Staff | None = None) -> list[dict]:
+    """One row per repo. Denylisted owners and forks of their repos are dropped;
+    the count of dropped rows is returned on the list as `.denylisted`."""
+    staff = staff or Staff()
     rows = []
+    denylisted = 0
     for repo in sorted(set(repos) | set(wf) | set(prs)):
         r = dict(repos.get(repo) or {"repo": repo})
         if r.get("missing"):
             continue
-        if repo.split("/")[0].lower() in EXCLUDED_ACCOUNTS:
-            continue
-        if r.get("is_fork") and (r.get("parent") or "").split("/")[0].lower() in EXCLUDED_ACCOUNTS:
+        if staff.is_denylisted(repo.split("/")[0]) or (r.get("is_fork") and staff.is_denylisted((r.get("parent") or "").split("/")[0])):
+            denylisted += 1
             continue
         r.update(wf.get(repo) or {})
         pr_list = prs.get(repo) or []
@@ -110,7 +111,13 @@ def build_repo_rows(repos: dict, wf: dict, prs: dict, contacts: dict, discovered
             r["owner"] = repo.split("/")[0]
         rows.append(r)
     rows.sort(key=lambda x: -(x.get("stars") or 0))
+    rows = RepoRows(rows)
+    rows.denylisted = denylisted
     return rows
+
+
+class RepoRows(list):
+    denylisted = 0
 
 
 def _tier(acct: dict, owner: dict) -> tuple[str, str]:
@@ -238,6 +245,7 @@ def write_summary(path: str, accounts: list[dict], repos: list[dict], people: li
         f"# Crawl summary ({dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')})",
         "",
         f"- Repos discovered: **{meta.get('discovered_repos', 0)}** (code search) + **{meta.get('pr_repos', 0)}** (bot PRs); exported **{len(repos)}**",
+        f"- Denylist removed: {meta.get('denylist_repos_removed', 0)} repos, {meta.get('denylist_prs_removed', 0)} PRs; staff logins known: {meta.get('staff_logins', 0)}",
         f"- Accounts: **{len(accounts)}** ({', '.join(f'{k}: {v}' for k, v in types.most_common())})",
         f"- Accounts with an inferred domain: {with_domain} ({100 * with_domain // max(1, len(accounts))}%)",
         f"- Accounts with at least one corporate committer email: {with_corp_email} ({100 * with_corp_email // max(1, len(accounts))}%)",

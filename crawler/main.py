@@ -13,7 +13,7 @@ import sys
 import time
 
 from . import contacts as contacts_mod
-from . import discover, enrich, export, workflows
+from . import discover, enrich, export, vendor, workflows
 from .gh import GitHub
 
 log = logging.getLogger("crawler")
@@ -84,6 +84,9 @@ def run(args) -> int:
     repos = st.load("repos", {})
     owners = st.load("owners", {})
     contacts = st.load("contacts", {})
+    staff = vendor.build_staff(gh, prs, st.load("staff", None))
+    st.save("staff", staff.to_json())
+    meta["staff_logins"] = len(staff.logins)
 
     # ------------------------------------------------------------ discover
     if "discover" in phases and budget.ok():
@@ -162,7 +165,7 @@ def run(args) -> int:
                         "pr_numbers": [p["number"] for p in (prs.get(r) or []) if p.get("merged_at")][:3],
                     }
                 )
-            contacts.update(contacts_mod.collect_contacts(gh, items, walk_history=not args.no_history_walk))
+            contacts.update(contacts_mod.collect_contacts(gh, items, walk_history=not args.no_history_walk, staff=staff))
             st.save("contacts", contacts)
         meta["contacts_done"] = sum(1 for r in all_repos if r in contacts)
         st.save("meta", meta)
@@ -170,7 +173,7 @@ def run(args) -> int:
     # -------------------------------------------------------------- export
     if "export" in phases:
         repo_owner = {r: (repos.get(r) or {}).get("owner") or r.split("/")[0] for r in all_repos}
-        people = contacts_mod.aggregate_people(contacts, repo_owner)
+        people = contacts_mod.aggregate_people(contacts, repo_owner, staff)
         by_acct = contacts_mod.account_contact_summary(people)
         scoped = set(all_repos)
         repo_rows = export.build_repo_rows(
@@ -179,7 +182,10 @@ def run(args) -> int:
             {r: v for r, v in prs.items() if r in scoped},
             contacts,
             discovered,
+            staff,
         )
+        meta["denylist_repos_removed"] = repo_rows.denylisted
+        meta["denylist_prs_removed"] = sum(len(v) for r, v in prs.items() if staff.is_denylisted(r.split("/")[0]))
         acct_rows = export.build_account_rows(repo_rows, owners, by_acct)
         contact_rows = export.build_contact_rows(people)
         file_rows = export.build_file_rows(wf_raw)
