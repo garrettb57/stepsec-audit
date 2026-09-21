@@ -1,6 +1,6 @@
 import os
 
-from crawler.workflows import parse_workflow, summarize_repo
+from crawler.workflows import fetch_and_parse, parse_workflow, select_tree_paths, summarize_repo
 
 FIX = os.path.join(os.path.dirname(__file__), "fixtures")
 
@@ -91,3 +91,39 @@ def test_summarize_repo():
     assert s["pinned_sha_ratio"] == 1.0
     assert s["secure_repo_marker"]
     assert s["harden_runner_versions"] == ["v2.21.0"]
+
+
+def test_select_tree_paths_prefers_ci_like_names():
+    names = ["zzz.yml", "release.yaml", "docs.yml", "ci.yml", "README.md", "codeql.yml"] + [f"misc{i}.yml" for i in range(20)]
+    picked = select_tree_paths(names, cap=5)
+    assert picked[:3] == [".github/workflows/ci.yml", ".github/workflows/codeql.yml", ".github/workflows/release.yaml"]
+    assert len(picked) == 5 and all(p.endswith((".yml", ".yaml")) for p in picked)
+
+
+class _FakeGH:
+    """Answers the two-pass fetch: first the tree only, then the chosen blob."""
+
+    def __init__(self):
+        self.calls = []
+
+    def graphql(self, query, variables=None):
+        self.calls.append(query)
+        if "f0:" not in query:
+            return {"data": {"r0": {"nameWithOwner": "acme/app", "defaultBranchRef": {"name": "main"},
+                                    "tree": {"entries": [{"name": "ci.yml", "type": "blob"}, {"name": "docs.yml", "type": "blob"}]}}}}
+        text = "on: push\njobs:\n  b:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: step-security/harden-runner@v2\n        with:\n          egress-policy: block\n"
+        return {"data": {"r0": {"nameWithOwner": "acme/app", "defaultBranchRef": {"name": "main"},
+                                "tree": {"entries": [{"name": "ci.yml", "type": "blob"}, {"name": "docs.yml", "type": "blob"}]},
+                                "f0": {"text": text, "byteSize": len(text), "isBinary": False},
+                                "f1": {"text": "on: push\njobs: {}\n", "byteSize": 20, "isBinary": False}}}}
+
+
+def test_pr_only_repo_with_live_harden_runner_parses_true():
+    gh = _FakeGH()
+    out = fetch_and_parse(gh, {"acme/app": []})  # no code-search hits: PR-only discovery
+    assert len(gh.calls) == 2
+    assert out["acme/app"]["source"] == "tree_scan"
+    assert out["acme/app"]["workflows_total"] == 2
+    s = summarize_repo(out["acme/app"])
+    assert s["uses_harden_runner"] is True and s["egress_block"] == 1
+    assert s["harden_runner_paths"] == [".github/workflows/ci.yml"]

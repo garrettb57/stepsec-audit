@@ -385,6 +385,7 @@ def run(args) -> int:
                 ctx.org_members,
                 owner_types=owner_types,
                 filtered=ctx.filtered,
+                wf_sources={r: v.get("source") for r, v in ctx.wf_raw.items()},
             )
             meta["denylist_repos_removed"] = repo_rows.denylisted + sum(1 for v in ctx.filtered.values() if v == "denylist")
             meta["denylist_prs_removed"] = sum(len(v) for r, v in ctx.prs.items() if ctx.staff.is_denylisted(r.split("/")[0]))

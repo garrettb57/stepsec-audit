@@ -78,7 +78,7 @@ FILE_COLUMNS = ["repo", "path", "action", "ref", "pinned_sha", "version", "egres
 def build_repo_rows(
     repos: dict, wf: dict, prs: dict, contacts: dict, discovered: dict,
     staff: Staff | None = None, public_members: dict | None = None,
-    owner_types: dict | None = None, filtered: dict | None = None,
+    owner_types: dict | None = None, filtered: dict | None = None, wf_sources: dict | None = None,
 ) -> list[dict]:
     """One row per repo. Denylisted owners and forks of their repos are dropped;
     the count of dropped rows is returned on the list as `.denylisted`.
@@ -87,6 +87,7 @@ def build_repo_rows(
     public_members = public_members or {}
     owner_types = owner_types or {}
     filtered = filtered or {}
+    wf_sources = wf_sources or {}
     rows = []
     denylisted = 0
     for repo in sorted(set(repos) | set(wf) | set(prs)):
@@ -124,6 +125,8 @@ def build_repo_rows(
             src.append("code_search")
         if pr_list:
             src.append("bot_pr")
+        if wf_sources.get(repo) == "tree_scan":
+            src.append("tree_scan")
         r["discovery_sources"] = src
         if not r.get("owner"):
             r["owner"] = repo.split("/")[0]
