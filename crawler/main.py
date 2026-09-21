@@ -178,6 +178,10 @@ def _merge_prs(existing: dict, fresh: dict) -> dict:
 def run(args) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s", stream=sys.stdout)
     gh = GitHub(os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or "")
+    if args.smoke and args.state_dir == "state":
+        # never let a smoke run overwrite the full crawl's checkpoints
+        args.state_dir, args.out_dir = "state_smoke", "data_smoke"
+        log.info("smoke: using %s and %s", args.state_dir, args.out_dir)
     st = State(args.state_dir)
     budget = Budget(args.time_budget_min)
     phases = PHASES if args.phase == "all" else [args.phase]

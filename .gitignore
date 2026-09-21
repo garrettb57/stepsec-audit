@@ -4,3 +4,5 @@ __pycache__/
 state/*.tmp
 .venv/
 .crawl_remaining
+state_smoke/
+data_smoke/

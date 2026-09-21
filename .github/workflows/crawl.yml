@@ -87,7 +87,9 @@ jobs:
         if: always()
         with:
           name: stepsec-csv
-          path: data/
+          path: |
+            data/
+            data_smoke/
           if-no-files-found: ignore
 
       - name: Dispatch next run if work remains
