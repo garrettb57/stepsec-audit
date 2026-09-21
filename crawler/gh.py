@@ -36,16 +36,23 @@ class GitHub:
             }
         )
         self.requests_made = 0
+        self.requests_by_bucket: dict[str, int] = {}
         # bucket -> (remaining, reset_epoch)
         self._buckets: dict[str, tuple[int, int]] = {}
+        # bucket -> limit, as reported by X-RateLimit-Limit
+        self.limits: dict[str, int] = {}
 
     # ------------------------------------------------------------------ utils
-    def _track(self, resp: requests.Response) -> None:
-        bucket = resp.headers.get("X-RateLimit-Resource")
+    def _track(self, resp: requests.Response, default_bucket: str = "core") -> None:
+        bucket = resp.headers.get("X-RateLimit-Resource") or default_bucket
         remaining = resp.headers.get("X-RateLimit-Remaining")
         reset = resp.headers.get("X-RateLimit-Reset")
-        if bucket and remaining is not None and reset:
+        limit = resp.headers.get("X-RateLimit-Limit")
+        if remaining is not None and reset:
             self._buckets[bucket] = (int(remaining), int(reset))
+        if limit and limit.isdigit():
+            self.limits[bucket] = int(limit)
+        self.requests_by_bucket[bucket] = self.requests_by_bucket.get(bucket, 0) + 1
 
     def _wait_if_exhausted(self, bucket: str) -> None:
         rem, reset = self._buckets.get(bucket, (1, 0))
@@ -92,7 +99,7 @@ class GitHub:
                 backoff = min(backoff * 2, 120)
                 continue
             self.requests_made += 1
-            self._track(resp)
+            self._track(resp, bucket)
 
             if resp.status_code in (403, 429):
                 body = resp.text.lower()
@@ -166,7 +173,7 @@ class GitHub:
                 backoff = min(backoff * 2, 120)
                 continue
             self.requests_made += 1
-            self._track(resp)
+            self._track(resp, "graphql")
             if resp.status_code in (403, 429):
                 wait = self._retry_wait(resp)
                 log.warning("graphql rate limited; sleeping %ss", wait)

@@ -47,11 +47,13 @@ REPO_COLUMNS = [
     "stepsecurity_prs", "stepsecurity_prs_merged", "stepsecurity_pr_first", "stepsecurity_pr_urls",
     "pr_classes", "pr_requesters", "pr_human_authors", "pr_median_latency_h", "reverted", "reverted_prs", "app_installed",
     "adoption_date", "adopter_login", "adopter_name", "adopter_email", "top_committers", "recent_commits",
-    "distinct_humans_recent", "discovery_sources",
+    "distinct_humans_recent", "discovery_sources", "filtered_reason",
 ]
 
+INDIVIDUAL_COLUMNS = ["login", "name", "company", "website", "location", "repos", "repos_with_harden_runner", "stepsecurity_prs", "profile_url"]
+
 ACCOUNT_COLUMNS = [
-    "account", "account_type", "account_url", "account_name", "company_hint", "inferred_domain", "domain_source",
+    "account", "account_type", "rank", "account_url", "account_name", "company_hint", "inferred_domain", "domain_source",
     "website", "public_email", "location", "twitter", "description", "is_verified_org",
     "public_repos", "followers", "user_orgs", "account_created_at", "tier", "tier_reason",
     "repos_using_stepsecurity", "repos_with_harden_runner", "repos_bot_pr_only", "repo_list", "total_stars", "max_stars",
@@ -73,17 +75,26 @@ FILE_COLUMNS = ["repo", "path", "action", "ref", "pinned_sha", "version", "egres
                 "disable_sudo", "disable_telemetry", "policy_store", "self_hosted", "runs_on", "secure_repo_marker"]
 
 
-def build_repo_rows(repos: dict, wf: dict, prs: dict, contacts: dict, discovered: dict, staff: Staff | None = None, public_members: dict | None = None) -> list[dict]:
+def build_repo_rows(
+    repos: dict, wf: dict, prs: dict, contacts: dict, discovered: dict,
+    staff: Staff | None = None, public_members: dict | None = None,
+    owner_types: dict | None = None, filtered: dict | None = None,
+) -> list[dict]:
     """One row per repo. Denylisted owners and forks of their repos are dropped;
-    the count of dropped rows is returned on the list as `.denylisted`."""
+    the count of dropped rows is returned on the list as `.denylisted`.
+    Rows filtered for fork/archived/mirror/template stay, with `filtered_reason`."""
     staff = staff or Staff()
     public_members = public_members or {}
+    owner_types = owner_types or {}
+    filtered = filtered or {}
     rows = []
     denylisted = 0
     for repo in sorted(set(repos) | set(wf) | set(prs)):
         r = dict(repos.get(repo) or {"repo": repo})
         if r.get("missing"):
             continue
+        r["filtered_reason"] = filtered.get(repo)
+        r["owner_type"] = r.get("owner_type") or owner_types.get(repo) or ((discovered.get(repo) or [{}])[0].get("owner_type"))
         if staff.is_denylisted(repo.split("/")[0]) or (r.get("is_fork") and staff.is_denylisted((r.get("parent") or "").split("/")[0])):
             denylisted += 1
             continue
@@ -157,11 +168,13 @@ def _tier(acct: dict, owner: dict) -> tuple[str, str]:
     return "adopter_audit", "harden-runner in audit-only / default mode"
 
 
-def build_account_rows(repo_rows: list[dict], owners: dict, people_by_acct: dict) -> list[dict]:
-    """One row per owner. Forks are listed in repos.csv but do not count as adoption."""
+def build_account_rows(repo_rows: list[dict], owners: dict, people_by_acct: dict, scores: dict | None = None) -> list[dict]:
+    """One row per owner. Filtered repos (forks, archived, mirrors, templates)
+    are listed in repos.csv but do not count toward adoption."""
+    scores = scores or {}
     by_acct: dict[str, list[dict]] = {}
     for r in repo_rows:
-        if r.get("is_fork"):
+        if r.get("is_fork") or r.get("filtered_reason"):
             continue
         by_acct.setdefault(r["owner"], []).append(r)
     rows = []
@@ -181,7 +194,8 @@ def build_account_rows(repo_rows: list[dict], owners: dict, people_by_acct: dict
         other_actions = sorted({a for r in reps for a in (r.get("other_stepsecurity_actions") or [])})
         a = {
             "account": acct,
-            "account_type": o.get("type") or (reps[0].get("owner_type")),
+            "account_type": o.get("type") or next((r.get("owner_type") for r in reps if r.get("owner_type")), None),
+            "rank": (scores.get(acct) or {}).get("rank"),
             "account_url": o.get("url") or f"https://github.com/{acct}",
             "account_name": o.get("name"),
             "company_hint": o.get("company") if o.get("type") == "User" else o.get("name"),
@@ -240,9 +254,25 @@ def build_account_rows(repo_rows: list[dict], owners: dict, people_by_acct: dict
         }
         a["tier"], a["tier_reason"] = _tier(a, o)
         rows.append(a)
-    tier_order = {"likely_customer": 0, "power_user": 1, "adopter_block": 2, "adopter_audit": 3, "other_actions_only": 4, "bot_pr_only": 5, "individual": 6}
-    rows.sort(key=lambda a: (tier_order.get(a["tier"], 9), -(a["total_stars"] or 0)))
+    rows.sort(key=lambda a: (a.get("rank") if a.get("rank") is not None else 10**9, -(a["total_stars"] or 0)))
     return rows
+
+
+def build_individual_rows(repos: list[str], owners: dict, wf: dict, prs: dict) -> list[dict]:
+    """User-owned accounts: one row per login, unenriched beyond the owner profile."""
+    by_login: dict[str, dict] = {}
+    for repo in repos:
+        login = repo.split("/")[0]
+        o = owners.get(login) or {}
+        row = by_login.setdefault(login, {
+            "login": login, "name": o.get("name"), "company": o.get("company"), "website": o.get("websiteUrl"),
+            "location": o.get("location"), "repos": [], "repos_with_harden_runner": 0, "stepsecurity_prs": 0,
+            "profile_url": f"https://github.com/{login}",
+        })
+        row["repos"].append(repo)
+        row["repos_with_harden_runner"] += 1 if (wf.get(repo) or {}).get("uses_harden_runner") else 0
+        row["stepsecurity_prs"] += len(prs.get(repo) or [])
+    return sorted(by_login.values(), key=lambda r: (-r["repos_with_harden_runner"], -len(r["repos"]), r["login"].lower()))
 
 
 def build_contact_rows(people: list[dict]) -> list[dict]:
@@ -278,14 +308,34 @@ def write_summary(path: str, accounts: list[dict], repos: list[dict], people: li
         f"- Accounts with at least one corporate committer email: {with_corp_email} ({100 * with_corp_email // max(1, len(accounts))}%)",
         f"- People rows: {len(people)}; with any email: {sum(1 for p in people if p['emails'])}; with corporate email: {sum(1 for p in people if p['corporate_emails'])}",
         "",
-        "## Tiers",
+        "## Funnel",
+        "",
+        "| stage | count |",
+        "|---|---|",
+    ] + [f"| {k} | {v} |" for k, v in (meta.get("funnel") or {}).items() if not isinstance(v, dict)] + [
+        "",
+        "Filtered by reason: " + ", ".join(f"{k}={v}" for k, v in ((meta.get("funnel") or {}).get("filtered_reasons") or {}).items()),
+        "",
+        "## Tiers (legacy)",
         "",
         "| tier | accounts |",
         "|---|---|",
     ] + [f"| {t} | {n} |" for t, n in tiers.most_common()] + [
         "",
+        "## Phases (cumulative across runs)",
+        "",
+        "| phase | wall (min) | last run (min) | requests by bucket | rows |",
+        "|---|---|---|---|---|",
+    ] + [
+        f"| {name} | {p.get('wall_s', 0) / 60:.1f} | {p.get('last_run_wall_s', 0) / 60:.1f} | {', '.join(f'{b}={n}' for b, n in (p.get('requests') or {}).items()) or '-'} | {p.get('rows', 0)} |"
+        for name, p in (meta.get("phases") or {}).items()
+    ] + [
+        "",
+        f"Requests this run by bucket: {meta.get('requests_by_bucket_this_run')}; rate limits seen: {meta.get('rate_limits')}",
+        f"Remaining work: {meta.get('remaining_work') or 'none'}",
+        "",
         "## Phase state",
         "",
-    ] + [f"- {k}: {v}" for k, v in meta.items()]
+    ] + [f"- {k}: {v}" for k, v in meta.items() if k not in ("phases", "funnel")]
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
