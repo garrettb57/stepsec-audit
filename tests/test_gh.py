@@ -41,3 +41,23 @@ def test_requests_counted_per_bucket():
     gh._track(R2(), "code_search")
     assert gh.requests_by_bucket == {"graphql": 2, "code_search": 1}
     assert gh.limits == {"graphql": 5000, "code_search": 10}
+
+
+def test_graphql_truncated_response_becomes_github_error(monkeypatch):
+    gh = GitHub("token")
+
+    class Resp:
+        status_code = 200
+        headers = {}
+        content = b'{"data": {"r0": {"nameWithOwner": "acme/ap'
+        text = content.decode()
+
+        def json(self):
+            raise ValueError("Unterminated string")
+
+    calls = []
+    monkeypatch.setattr(gh.s, "post", lambda *a, **k: calls.append(1) or Resp())
+    monkeypatch.setattr("crawler.gh.time.sleep", lambda s: None)
+    with pytest.raises(GitHubError) as e:
+        gh.graphql("query { x }")
+    assert "undecodable" in str(e.value) and len(calls) == 3

@@ -167,7 +167,14 @@ class GitHub:
         params = {"q": q, "page": page, "per_page": per_page, **extra}
         for attempt in range(4):
             resp = self.rest(f"/search/{kind}", params=params, bucket=bucket)
-            data = resp.json()
+            try:
+                data = resp.json()
+            except ValueError as e:
+                log.warning("search: undecodable response (attempt %d): %s", attempt, str(e)[:80])
+                if attempt == 3:
+                    raise GitHubError(f"search {kind}: undecodable response for {q!r} page {page}")
+                time.sleep(5)
+                continue
             if data.get("incomplete_results") and attempt < 3:
                 log.info("incomplete_results for %r page %d; retrying", q, page)
                 time.sleep(3)
@@ -203,7 +210,17 @@ class GitHub:
                 raise GitHubError(f"graphql {resp.status_code}: {resp.text[:200]}")
             if resp.status_code >= 400:
                 raise GitHubError(f"graphql {resp.status_code}: {resp.text[:400]}")
-            data = resp.json()
+            try:
+                data = resp.json()
+            except ValueError as e:
+                # truncated or non-JSON body; transient on GitHub's side. Retry, then let
+                # run_batched shrink the batch by raising GitHubError.
+                log.warning("graphql: undecodable response (%d bytes, attempt %d): %s", len(resp.content), attempt, str(e)[:80])
+                if attempt >= 2:
+                    raise GitHubError(f"graphql: undecodable response after {attempt + 1} attempts ({len(resp.content)} bytes)")
+                time.sleep(backoff)
+                backoff = min(backoff * 2, 120)
+                continue
             errors = data.get("errors") or []
             if errors and not data.get("data"):
                 types = {e.get("type") for e in errors}
