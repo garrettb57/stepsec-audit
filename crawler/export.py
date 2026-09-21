@@ -9,6 +9,7 @@ from collections import Counter
 
 from .domains import infer_account_domain
 from .prs import summarize_repo_prs
+from .score import path_class, score_account, sort_key
 from .vendor import Staff
 
 log = logging.getLogger(__name__)
@@ -41,9 +42,9 @@ REPO_COLUMNS = [
     "stars", "forks", "watchers", "open_issues", "open_prs", "is_fork", "parent", "is_archived", "is_template",
     "security_policy_enabled", "created_at", "pushed_at", "latest_release", "latest_release_at", "funding",
     "uses_harden_runner", "stepsecurity_actions", "other_stepsecurity_actions", "harden_runner_steps",
-    "harden_runner_versions", "egress_block", "egress_audit", "egress_unset", "allowed_endpoints_max",
+    "harden_runner_versions", "egress_block", "egress_audit", "egress_unset", "egress_expr", "allowed_endpoints_max",
     "disable_sudo_any", "disable_telemetry_any", "policy_store_any", "self_hosted_any", "pinned_sha_ratio",
-    "secure_repo_marker", "workflows_total", "workflows_with_stepsecurity", "harden_runner_paths",
+    "secure_repo_marker", "workflows_total", "workflows_with_stepsecurity", "harden_runner_paths", "path_class",
     "stepsecurity_prs", "stepsecurity_prs_merged", "stepsecurity_pr_first", "stepsecurity_pr_urls",
     "pr_classes", "pr_requesters", "pr_human_authors", "pr_median_latency_h", "reverted", "reverted_prs", "app_installed",
     "adoption_date", "adopter_login", "adopter_name", "adopter_email", "top_committers", "recent_commits",
@@ -55,7 +56,10 @@ INDIVIDUAL_COLUMNS = ["login", "name", "company", "website", "location", "repos"
 ACCOUNT_COLUMNS = [
     "account", "account_type", "rank", "account_url", "account_name", "company_hint", "inferred_domain", "domain_source",
     "website", "public_email", "location", "twitter", "description", "is_verified_org",
-    "public_repos", "followers", "user_orgs", "account_created_at", "tier", "tier_reason",
+    "public_repos", "followers", "user_orgs", "account_created_at",
+    "score", "depth_score", "provenance", "suppress_reason", "breadth", "rollout", "recency_factor", "legacy_tier",
+    "path_hygiene_repos", "path_build_repos", "path_release_repos", "disable_sudo_repos", "egress_expr_repos",
+    "org_standard", "inherited_repos", "live_repos", "latest_human_touch", "foundation",
     "repos_using_stepsecurity", "repos_with_harden_runner", "repos_bot_pr_only", "repo_list", "total_stars", "max_stars",
     "top_repo", "languages", "first_adoption", "latest_push", "egress_block_repos", "egress_audit_repos",
     "egress_unset_repos", "policy_store_repos", "self_hosted_repos", "disable_telemetry_repos", "avg_pinned_sha_ratio",
@@ -70,6 +74,8 @@ CONTACT_COLUMNS = [
     "login", "name", "emails", "corporate_emails", "company", "website", "location", "twitter", "roles",
     "accounts", "repos", "commits", "last_commit", "first_adoption", "profile_url",
 ]
+
+SUPPRESSED_COLUMNS = ["account", "suppress_reason", "evidence"]
 
 FILE_COLUMNS = ["repo", "path", "action", "ref", "pinned_sha", "version", "egress_policy", "allowed_endpoints_count",
                 "disable_sudo", "disable_telemetry", "policy_store", "self_hosted", "runs_on", "secure_repo_marker"]
@@ -100,6 +106,7 @@ def build_repo_rows(
             denylisted += 1
             continue
         r.update(wf.get(repo) or {})
+        r["path_class"] = path_class(r.get("harden_runner_paths"))
         pr_list = prs.get(repo) or []
         merged = [p for p in pr_list if p.get("merged_at")]
         owner_login = r.get("owner") or repo.split("/")[0]
@@ -230,6 +237,18 @@ def build_account_rows(repo_rows: list[dict], owners: dict, people_by_acct: dict
             "policy_store_repos": sum(1 for r in hr if r.get("policy_store_any")),
             "self_hosted_repos": sum(1 for r in hr if r.get("self_hosted_any")),
             "disable_telemetry_repos": sum(1 for r in hr if r.get("disable_telemetry_any")),
+            "disable_sudo_repos": sum(1 for r in hr if r.get("disable_sudo_any")),
+            "egress_expr_repos": sum(1 for r in hr if r.get("egress_expr")),
+            "allowed_endpoints_max": max([r.get("allowed_endpoints_max") or 0 for r in hr] or [0]),
+            "path_hygiene_repos": sum(1 for r in hr if "hygiene" in (r.get("path_class") or [])),
+            "path_build_repos": sum(1 for r in hr if "build" in (r.get("path_class") or [])),
+            "path_release_repos": sum(1 for r in hr if "release" in (r.get("path_class") or [])),
+            "adoption_dates": [r.get("adoption_date") for r in hr if r.get("adoption_date")],
+            "org_standard": None,
+            "inherited_repos": None,
+            "live_repos": None,
+            "latest_human_touch": None,
+            "foundation": None,
             "avg_pinned_sha_ratio": round(sum(pinned) / len(pinned), 2) if pinned else None,
             "other_stepsecurity_actions": other_actions,
             "workflows_total": wf_total,
@@ -255,10 +274,31 @@ def build_account_rows(repo_rows: list[dict], owners: dict, people_by_acct: dict
                 for p in sorted(ppl["contacts"], key=lambda p: (-len(p["roles"]), -p["commits"]))[:5]
             ],
         }
-        a["tier"], a["tier_reason"] = _tier(a, o)
+        a["legacy_tier"] = _tier(a, o)[0]
+        score_account(a)
         rows.append(a)
-    rows.sort(key=lambda a: (a.get("rank") if a.get("rank") is not None else 10**9, -(a["total_stars"] or 0)))
+    rows.sort(key=sort_key)
+    for i, a in enumerate(rows, start=1):
+        a["rank"] = i
     return rows
+
+
+def build_suppressed_rows(acct_rows: list[dict]) -> list[dict]:
+    out = []
+    for a in acct_rows:
+        for reason in a.get("suppress_reason") or []:
+            if reason == "app_installed":
+                ev = f"stepsecurity-app[bot] PRs in {sum(1 for r in a.get('repo_list') or [])} repos; e.g. {a.get('top_repo')}"
+            elif reason == "policy_store":
+                ev = f"policy store / api-key in {a.get('policy_store_repos')} repos"
+            elif reason == "all_reverted":
+                ev = f"{a.get('reverts')} revert PRs, no harden-runner live"
+            elif reason == "individual":
+                ev = "user-owned account"
+            else:
+                ev = ""
+            out.append({"account": a["account"], "suppress_reason": reason, "evidence": ev})
+    return out
 
 
 def build_individual_rows(repos: list[str], owners: dict, wf: dict, prs: dict) -> list[dict]:
@@ -297,7 +337,7 @@ def build_file_rows(wf_raw: dict) -> list[dict]:
 
 
 def write_summary(path: str, accounts: list[dict], repos: list[dict], people: list[dict], meta: dict) -> None:
-    tiers = Counter(a["tier"] for a in accounts)
+    tiers = Counter(a.get("legacy_tier") for a in accounts)
     types = Counter(a["account_type"] for a in accounts)
     with_domain = sum(1 for a in accounts if a["inferred_domain"])
     with_corp_email = sum(1 for a in accounts if a["corporate_emails"])
@@ -318,6 +358,16 @@ def write_summary(path: str, accounts: list[dict], repos: list[dict], people: li
     ] + [f"| {k} | {v} |" for k, v in (meta.get("funnel") or {}).items() if not isinstance(v, dict)] + [
         "",
         "Filtered by reason: " + ", ".join(f"{k}={v}" for k, v in ((meta.get("funnel") or {}).get("filtered_reasons") or {}).items()),
+        "",
+        "## Provenance",
+        "",
+        "| provenance | accounts |",
+        "|---|---|",
+    ] + [f"| {t} | {n} |" for t, n in Counter(a.get("provenance") for a in accounts).most_common()] + [
+        "",
+        f"Suppressed: {dict(Counter(r for a in accounts for r in (a.get('suppress_reason') or [])))}; "
+        f"score > 0: {sum(1 for a in accounts if (a.get('score') or 0) > 0)}; "
+        f"rollout accounts: {sum(1 for a in accounts if a.get('rollout'))}",
         "",
         "## Tiers (legacy)",
         "",

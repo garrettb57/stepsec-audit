@@ -18,7 +18,6 @@ import time
 from . import contacts as contacts_mod
 from . import discover, enrich, export, vendor, workflows
 from . import prs as prs_mod
-from . import score as score_mod
 from .gh import GitHub
 
 log = logging.getLogger("crawler")
@@ -323,17 +322,14 @@ def run(args) -> int:
     # --------------------------------------------------------------- score
     top_accounts: list[str] = []
     with Phase("score", gh, meta, st) as ph:
-        acct: dict[str, dict] = {}
-        for r in survivors:
-            a = acct.setdefault(ctx.owner_of(r), {"type": ctx.owner_type(r), "hr_repos": 0, "stars": 0})
-            a["hr_repos"] += 1 if (wf.get(r) or {}).get("uses_harden_runner") else 0
-            a["stars"] += (ctx.repos.get(r) or {}).get("stars") or 0
-        ranked = score_mod.rank_accounts(acct)
-        ctx.scores = {a: {"rank": i + 1, **acct[a]} for i, a in enumerate(ranked)}
+        _, acct_rows = _build_rows(ctx, candidates, wf)
+        ctx.scores = {a["account"]: {"rank": a["rank"], "score": a["score"], "depth_score": a["depth_score"],
+                                     "provenance": a["provenance"], "suppress_reason": a["suppress_reason"]} for a in acct_rows}
         st.save("scores", ctx.scores)
-        top_accounts = ranked[: args.contacts_top_accounts]
-        ph.rows = len(ranked)
-        meta["funnel"]["scored_accounts"] = len(ranked)
+        top_accounts = [a["account"] for a in acct_rows if (a.get("score") or 0) > 0][: args.contacts_top_accounts]
+        ph.rows = len(acct_rows)
+        meta["funnel"]["scored_accounts"] = len(acct_rows)
+        meta["funnel"]["scored_accounts_positive"] = sum(1 for a in acct_rows if (a.get("score") or 0) > 0)
         meta["funnel"]["contacts_top_accounts"] = len(top_accounts)
 
     # ------------------------------------------------------------ contacts
@@ -368,38 +364,23 @@ def run(args) -> int:
     # -------------------------------------------------------------- export
     if "export" in phases:
         with Phase("export", gh, meta, st) as ph:
+            repo_rows, acct_rows = _build_rows(ctx, candidates, wf)
             repo_owner = {r: ctx.owner_of(r) for r in candidates}
-            owner_types = {r: ctx.owner_type(r) for r in candidates}
             people = contacts_mod.aggregate_people(ctx.contacts, repo_owner, ctx.staff)
-            by_acct = contacts_mod.account_contact_summary(people)
-            hidden = {"denylist", "individual", "owner_missing"}
-            exportable = [r for r in candidates if ctx.filtered.get(r) not in hidden]
-            scoped = set(exportable)
-            repo_rows = export.build_repo_rows(
-                {r: ctx.repos.get(r, {"repo": r}) for r in exportable},
-                {r: v for r, v in wf.items() if r in scoped},
-                {r: v for r, v in ctx.prs.items() if r in scoped},
-                ctx.contacts,
-                ctx.discovered,
-                ctx.staff,
-                ctx.org_members,
-                owner_types=owner_types,
-                filtered=ctx.filtered,
-                wf_sources={r: v.get("source") for r, v in ctx.wf_raw.items()},
-            )
             meta["denylist_repos_removed"] = repo_rows.denylisted + sum(1 for v in ctx.filtered.values() if v == "denylist")
             meta["denylist_prs_removed"] = sum(len(v) for r, v in ctx.prs.items() if ctx.staff.is_denylisted(r.split("/")[0]))
-            acct_rows = export.build_account_rows(repo_rows, ctx.owners, by_acct, ctx.scores)
             contact_rows = export.build_contact_rows(people)
             file_rows = export.build_file_rows(ctx.wf_raw)
             indiv = [r for r in candidates if ctx.filtered.get(r) == "individual"]
             indiv_rows = export.build_individual_rows(indiv, ctx.owners, wf, ctx.prs)
+            supp_rows = export.build_suppressed_rows(acct_rows)
             os.makedirs(args.out_dir, exist_ok=True)
             export.write_csv(os.path.join(args.out_dir, "accounts.csv"), acct_rows, export.ACCOUNT_COLUMNS)
             export.write_csv(os.path.join(args.out_dir, "repos.csv"), repo_rows, export.REPO_COLUMNS)
             export.write_csv(os.path.join(args.out_dir, "contacts.csv"), contact_rows, export.CONTACT_COLUMNS)
             export.write_csv(os.path.join(args.out_dir, "workflow_files.csv"), file_rows, export.FILE_COLUMNS)
             export.write_csv(os.path.join(args.out_dir, "individuals.csv"), indiv_rows, export.INDIVIDUAL_COLUMNS)
+            export.write_csv(os.path.join(args.out_dir, "suppressed.csv"), supp_rows, export.SUPPRESSED_COLUMNS)
             meta["exported_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
             meta["requests_this_run"] = gh.requests_made
             meta["requests_by_bucket_this_run"] = dict(gh.requests_by_bucket)
@@ -415,6 +396,30 @@ def run(args) -> int:
         log.warning("work remaining: %s; re-run to continue", remaining)
     log.info("done. requests: %d by bucket %s", gh.requests_made, gh.requests_by_bucket)
     return 0
+
+
+def _build_rows(ctx: Ctx, candidates: list[str], wf: dict):
+    """Repo and account rows from whatever state exists. No API calls."""
+    hidden = {"denylist", "individual", "owner_missing"}
+    exportable = [r for r in candidates if ctx.filtered.get(r) not in hidden]
+    scoped = set(exportable)
+    repo_owner = {r: ctx.owner_of(r) for r in candidates}
+    people = contacts_mod.aggregate_people(ctx.contacts, repo_owner, ctx.staff)
+    by_acct = contacts_mod.account_contact_summary(people)
+    repo_rows = export.build_repo_rows(
+        {r: ctx.repos.get(r, {"repo": r}) for r in exportable},
+        {r: v for r, v in wf.items() if r in scoped},
+        {r: v for r, v in ctx.prs.items() if r in scoped},
+        ctx.contacts,
+        ctx.discovered,
+        ctx.staff,
+        ctx.org_members,
+        owner_types={r: ctx.owner_type(r) for r in candidates},
+        filtered=ctx.filtered,
+        wf_sources={r: v.get("source") for r, v in ctx.wf_raw.items()},
+    )
+    acct_rows = export.build_account_rows(repo_rows, ctx.owners, by_acct)
+    return repo_rows, acct_rows
 
 
 def _remaining_work(ctx: Ctx, survivors: list[str], top_repos: list[str], args) -> dict:
