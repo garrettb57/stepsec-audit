@@ -106,6 +106,31 @@ def migrate(meta: dict, st: State) -> None:
         st.save("meta", meta)
 
 
+def migrate_workflows(wf_raw: dict) -> int:
+    """v1 recorded PR-only repos (no code-search paths) with files=[] even when
+    the repo has workflow files. Drop those records so the tree-scan second pass
+    (P0.5) fetches them. v2 records carry `source`; records with no workflow
+    files at all stay. Idempotent."""
+    drop = [
+        r for r, v in wf_raw.items()
+        if "source" not in v and not v.get("missing") and not v.get("files") and (v.get("workflows_total") or 0) > 0
+    ]
+    for r in drop:
+        del wf_raw[r]
+    return len(drop)
+
+
+def migrate_repos(repos: dict) -> int:
+    """v1 fetched light and deep fields together; mark them so the deep pass
+    does not refetch. Idempotent."""
+    n = 0
+    for v in repos.values():
+        if not v.get("missing") and "deep" not in v and "languages" in v:
+            v["deep"] = True
+            n += 1
+    return n
+
+
 class Ctx:
     def __init__(self, st: State):
         self.st = st
@@ -198,6 +223,15 @@ def run(args) -> int:
         log.info("migration: dropped %d internal-bot PRs", ctx.dropped_internal)
         st.save("prs", ctx.prs)
         meta["internal_prs_dropped"] = meta.get("internal_prs_dropped", 0) + ctx.dropped_internal
+    n = migrate_workflows(ctx.wf_raw)
+    if n:
+        log.info("migration: %d PR-only workflow records reset for tree scan", n)
+        st.save("workflows_raw", ctx.wf_raw)
+        meta["workflows_reset_for_tree_scan"] = meta.get("workflows_reset_for_tree_scan", 0) + n
+    n = migrate_repos(ctx.repos)
+    if n:
+        log.info("migration: %d v1 repo records marked deep", n)
+        st.save("repos", ctx.repos)
     meta["run_started_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
     # ------------------------------------------------------------ discover

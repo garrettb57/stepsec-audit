@@ -1,6 +1,6 @@
 import json
 
-from crawler.main import Ctx, State, _metadata_reason, _merge_prs
+from crawler.main import Ctx, State, _metadata_reason, _merge_prs, migrate_repos, migrate_workflows
 
 
 def _write(tmp_path, name, data):
@@ -43,3 +43,27 @@ def test_merge_prs_keeps_backfilled_bodies():
     out = _merge_prs(existing, fresh)
     assert [p["number"] for p in out["acme/app"]] == [1, 2]
     assert out["acme/app"][0]["requested_by"] == "alice"
+
+
+def test_migrate_workflows_resets_only_v1_pr_only_records():
+    wf = {
+        "a/pr-only-v1": {"missing": False, "files": [], "workflows_total": 3},          # v1, has workflow files -> refetch
+        "a/no-workflows-v1": {"missing": False, "files": [], "workflows_total": 0},     # nothing to scan -> keep
+        "a/code-hit-v1": {"missing": False, "files": [{"path": "x"}], "workflows_total": 3},
+        "a/pr-only-v2": {"missing": False, "files": [], "workflows_total": 3, "source": "tree_scan"},
+        "a/gone": {"missing": True, "files": []},
+    }
+    assert migrate_workflows(wf) == 1
+    assert "a/pr-only-v1" not in wf and len(wf) == 4
+    assert migrate_workflows(wf) == 0
+
+
+def test_migrate_repos_marks_v1_full_records_deep():
+    repos = {
+        "a/v1": {"repo": "a/v1", "languages": ["Go"], "topics": []},
+        "a/light": {"repo": "a/light", "stars": 3},
+        "a/gone": {"repo": "a/gone", "missing": True},
+    }
+    assert migrate_repos(repos) == 1
+    assert repos["a/v1"]["deep"] is True and "deep" not in repos["a/light"]
+    assert migrate_repos(repos) == 0
