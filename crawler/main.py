@@ -184,6 +184,12 @@ def run(args) -> int:
     ctx = Ctx(st)
     meta = ctx.meta
     migrate(meta, st)
+    needs_api = bool(set(phases) & {"discover", "owners", "repos", "workflows", "contacts"})
+    if needs_api and not args.allow_low_rate_limit:
+        meta["rate_limits"] = gh.check_budget()
+    marker = os.path.join(os.path.dirname(os.path.abspath(args.state_dir)), ".crawl_remaining")
+    if os.path.exists(marker):
+        os.remove(marker)
     if ctx.dropped_internal:
         log.info("migration: dropped %d internal-bot PRs", ctx.dropped_internal)
         st.save("prs", ctx.prs)
@@ -394,6 +400,9 @@ def run(args) -> int:
     st.save("meta", meta)
     if remaining:
         log.warning("work remaining: %s; re-run to continue", remaining)
+        # crawl.yml reads this after committing state and dispatches the next run
+        with open(marker, "w") as f:
+            json.dump(remaining, f)
     log.info("done. requests: %d by bucket %s", gh.requests_made, gh.requests_by_bucket)
     return 0
 
@@ -457,6 +466,7 @@ def main(argv=None) -> int:
     p.add_argument("--skip-contacts", action="store_true")
     p.add_argument("--no-history-walk", action="store_true", help="don't page file history to find the first commit")
     p.add_argument("--smoke", action="store_true", help="one page of discovery only; validates the pipeline end to end in minutes")
+    p.add_argument("--allow-low-rate-limit", action="store_true", help="skip the 5,000/hour token check (local debugging only)")
     return run(p.parse_args(argv))
 
 

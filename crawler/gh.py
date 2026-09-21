@@ -74,6 +74,25 @@ class GitHub:
     def bucket_status(self) -> dict[str, tuple[int, int]]:
         return dict(self._buckets)
 
+    def check_budget(self, min_core: int = 5000) -> dict:
+        """Fail fast on a token with the 1,000/hour GITHUB_TOKEN budget.
+        GET /rate_limit does not count against any limit."""
+        data = self.rest_json("/rate_limit")
+        res = data.get("resources") or {}
+        core = (res.get("core") or {}).get("limit", 0)
+        gql = (res.get("graphql") or {}).get("limit", 0)
+        for name, r in res.items():
+            if isinstance(r, dict) and "limit" in r:
+                self.limits[name] = r["limit"]
+        if core < min_core:
+            raise GitHubError(
+                f"token core rate limit is {core}/hour (GraphQL {gql}); the crawler needs a personal access token "
+                f"with {min_core}/hour. Add repo secret CRAWLER_TOKEN (fine-grained PAT, public repositories, read-only)."
+            )
+        log.info("rate limits: core %d/h, graphql %d/h, search %s/min, code_search %s/min", core, gql,
+                 (res.get("search") or {}).get("limit"), (res.get("code_search") or {}).get("limit"))
+        return {k: v.get("limit") for k, v in res.items() if isinstance(v, dict)}
+
     # ------------------------------------------------------------------- REST
     def rest(
         self,
